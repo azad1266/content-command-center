@@ -14,9 +14,9 @@
 <style>
   :root {
     color-scheme: light;
-    --bg: #f4f5f8;
+    --bg: #f4f5fa;
     --card: #ffffff;
-    --border: #e7e8ee;
+    --border: #e7e8f0;
     --text: #16182a;
     --muted: #6b6f85;
     --accent: #d9480f;
@@ -24,19 +24,25 @@
     --accent-soft: #fff1e9;
     --navy: #141625;
     --navy-soft: #1e2136;
-    --green: #1a8f5c;
-    --green-soft: #e5f6ee;
+    --green: #0e9f6e;
+    --green-soft: #e3f9ef;
     --blue: #2563eb;
-    --blue-soft: #eaf0fe;
+    --blue-soft: #e9f0ff;
     --purple: #7c3aed;
-    --purple-soft: #f2ecfe;
-    --amber: #b8860b;
-    --amber-soft: #fbf3de;
-    --pink: #c2255c;
-    --pink-soft: #fbe9f0;
-    --gray-soft: #eef0f4;
-    --shadow: 0 1px 2px rgba(20,22,37,.04), 0 4px 16px rgba(20,22,37,.06);
-    --shadow-lg: 0 8px 24px rgba(20,22,37,.10), 0 2px 6px rgba(20,22,37,.06);
+    --purple-soft: #f2ecff;
+    --amber: #d97706;
+    --amber-soft: #fef3e2;
+    --pink: #db2777;
+    --pink-soft: #fdedf5;
+    --teal: #0d9488;
+    --teal-soft: #e2f7f5;
+    --indigo: #4f46e5;
+    --indigo-soft: #edecfe;
+    --red: #dc2626;
+    --red-soft: #fdeaea;
+    --gray-soft: #eef0f5;
+    --shadow: 0 1px 2px rgba(20,22,37,.05), 0 6px 20px rgba(20,22,37,.07);
+    --shadow-lg: 0 10px 30px rgba(20,22,37,.14), 0 2px 8px rgba(20,22,37,.08);
   }
   * { box-sizing: border-box; }
   body {
@@ -47,46 +53,47 @@
     -webkit-font-smoothing: antialiased;
   }
   a { color: inherit; }
+  svg.ic { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; vertical-align: -3px; }
 
   .navbar {
     position: sticky; top: 0; z-index: 50;
     background: var(--navy);
+    background-image: radial-gradient(circle at 15% 0%, rgba(217,72,15,.25), transparent 55%), radial-gradient(circle at 85% 100%, rgba(124,58,237,.2), transparent 55%);
     color: #fff;
     padding: 0 28px;
     display: flex; align-items: center; justify-content: space-between;
     height: 62px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.15);
+    box-shadow: 0 2px 16px rgba(0,0,0,.2);
   }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15.5px; letter-spacing: -0.01em; }
   .brand .mark {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--accent), #ff7a3d);
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), #ff8a4c 60%, #ffb37a);
     display: flex; align-items: center; justify-content: center;
     font-size: 14px; font-weight: 800; color: #fff;
+    box-shadow: 0 2px 8px rgba(217,72,15,.5);
   }
-  .brand .tag { font-weight: 500; color: rgba(255,255,255,.45); font-size: 12px; margin-left: 6px; }
+  .brand .tag { font-weight: 500; color: rgba(255,255,255,.5); font-size: 12px; margin-left: 6px; }
   .navlinks { display: flex; gap: 4px; align-items: center; }
   .navlinks a {
-    text-decoration: none; color: rgba(255,255,255,.72); font-size: 13.5px; font-weight: 500;
+    text-decoration: none; color: rgba(255,255,255,.75); font-size: 13.5px; font-weight: 500;
     padding: 8px 14px; border-radius: 7px; transition: all .15s;
   }
-  .navlinks a:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .navlinks a:hover { background: rgba(255,255,255,.1); color: #fff; }
   .icon-btn {
-    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: #fff;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); color: #fff;
     width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px;
     display: flex; align-items: center; justify-content: center;
   }
-  .icon-btn:hover { background: rgba(255,255,255,.18); }
+  .icon-btn:hover { background: rgba(255,255,255,.2); }
   .nav-right { display: flex; align-items: center; gap: 14px; }
-  .nav-sync { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,.6); }
+  .nav-sync { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,.65); }
   .dot { width: 7px; height: 7px; border-radius: 50%; background: #6b6f85; flex-shrink: 0; }
-  .dot.live { background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,.2); }
+  .dot.live { background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,.25); }
 
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
 
-  .settings-panel {
-    display: none; max-width: 1080px; margin: 0 auto; padding: 14px 24px 0;
-  }
+  .settings-panel { display: none; max-width: 1100px; margin: 0 auto; padding: 14px 24px 0; }
   .settings-panel.open { display: block; }
   .settings-inner {
     background: var(--navy-soft); color: #fff; border-radius: 12px; padding: 16px 20px;
@@ -99,76 +106,96 @@
   .settings-inner input::placeholder { color: rgba(255,255,255,.4); }
   .settings-note { font-size: 11.5px; color: rgba(255,255,255,.5); width: 100%; }
 
-  .page-head { margin-bottom: 28px; }
+  .page-head { margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
   .eyebrow { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
-  h1 { font-size: 26px; margin: 0 0 6px; font-weight: 800; letter-spacing: -0.02em; }
+  h1 { font-size: 27px; margin: 0 0 6px; font-weight: 800; letter-spacing: -0.02em; }
   .sub { color: var(--muted); font-size: 14px; }
+  .head-badge {
+    display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--purple-soft), var(--blue-soft));
+    border: 1px solid var(--border); border-radius: 30px; padding: 8px 16px; font-size: 12.5px; font-weight: 600; color: var(--indigo);
+  }
 
   .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 28px; }
   .stat {
     background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 14px 16px; box-shadow: var(--shadow); border-top: 3px solid var(--gray-soft);
+    padding: 14px 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px;
   }
-  .stat.s-notstarted { border-top-color: #cbd0dc; }
-  .stat.s-research { border-top-color: var(--amber); }
-  .stat.s-script { border-top-color: var(--blue); }
-  .stat.s-json { border-top-color: var(--purple); }
-  .stat.s-production { border-top-color: var(--accent); }
-  .stat.s-posted { border-top-color: var(--green); }
-  .stat b { display: block; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
-  .stat span { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+  .stat .icon-circle { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+  .stat b { display: block; font-size: 23px; font-weight: 800; letter-spacing: -0.02em; }
+  .stat span { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .stat.s-notstarted .icon-circle { background: var(--gray-soft); color: var(--muted); }
+  .stat.s-research .icon-circle { background: var(--amber-soft); color: var(--amber); }
+  .stat.s-script .icon-circle { background: var(--blue-soft); color: var(--blue); }
+  .stat.s-json .icon-circle { background: var(--purple-soft); color: var(--purple); }
+  .stat.s-production .icon-circle { background: var(--accent-soft); color: var(--accent); }
+  .stat.s-posted .icon-circle { background: var(--green-soft); color: var(--green); }
 
   .card {
     background: var(--card); border: 1px solid var(--border); border-radius: 14px;
     padding: 22px 24px; margin-bottom: 20px; box-shadow: var(--shadow);
   }
-  .card h2 { font-size: 15.5px; margin: 0 0 4px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+  .card-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .card-icon.i-purple { background: var(--purple-soft); color: var(--purple); }
+  .card-icon.i-teal { background: var(--teal-soft); color: var(--teal); }
+  .card-icon.i-pink { background: var(--pink-soft); color: var(--pink); }
+  .card-icon.i-blue { background: var(--blue-soft); color: var(--blue); }
+  .card-icon.i-accent { background: var(--accent-soft); color: var(--accent); }
+  .card h2 { font-size: 15.5px; margin: 0 0 4px; font-weight: 700; }
   .card .card-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+  .card .card-text { flex: 1; }
 
   .workflow { display: flex; align-items: flex-start; gap: 0; margin-top: 4px; overflow-x: auto; padding-bottom: 4px; }
   .wf-step { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 108px; position: relative; }
   .wf-step .circle {
-    width: 38px; height: 38px; border-radius: 50%; background: var(--gray-soft); color: var(--muted);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
-    border: 2px solid var(--border); margin-bottom: 8px;
+    width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; margin-bottom: 8px; color: #fff;
   }
+  .wf-step:nth-child(1) .circle { background: linear-gradient(135deg, var(--amber), #f0b649); }
+  .wf-step:nth-child(3) .circle { background: linear-gradient(135deg, var(--blue), #5b8def); }
+  .wf-step:nth-child(5) .circle { background: linear-gradient(135deg, var(--purple), #a78bfa); }
+  .wf-step:nth-child(7) .circle { background: linear-gradient(135deg, var(--accent), #ff9552); }
+  .wf-step:nth-child(9) .circle { background: linear-gradient(135deg, var(--teal), #5eead4); }
+  .wf-step:nth-child(11) .circle { background: linear-gradient(135deg, var(--green), #6ee7b7); }
   .wf-step .wf-title { font-size: 12px; font-weight: 700; }
   .wf-step .wf-desc { font-size: 10.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; padding: 0 4px; }
-  .wf-line { flex: 1; height: 2px; background: var(--border); margin-top: 19px; min-width: 20px; }
+  .wf-line { flex: 1; height: 2px; background: var(--border); margin-top: 20px; min-width: 20px; }
 
   .pick-box {
-    background: linear-gradient(135deg, var(--navy), #262a45);
-    border-radius: 14px; padding: 22px 26px; margin-bottom: 20px; color: #fff;
+    background: linear-gradient(135deg, var(--navy) 0%, #262a45 55%, #33264d 100%);
+    border-radius: 14px; padding: 24px 26px; margin-bottom: 20px; color: #fff;
     box-shadow: var(--shadow-lg); position: relative; overflow: hidden;
   }
   .pick-box::before {
-    content: ''; position: absolute; right: -60px; top: -60px; width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(217,72,15,.35), transparent 70%);
+    content: ''; position: absolute; right: -60px; top: -80px; width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(217,72,15,.4), transparent 70%);
   }
-  .pick-eyebrow { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #ff9d5c; margin-bottom: 8px; }
-  .pick-title { font-size: 19px; font-weight: 700; margin: 4px 0 16px; max-width: 640px; line-height: 1.4; }
+  .pick-box::after {
+    content: ''; position: absolute; left: -40px; bottom: -80px; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(124,58,237,.3), transparent 70%);
+  }
+  .pick-eyebrow { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #ff9d5c; margin-bottom: 8px; position: relative; z-index: 1; }
+  .pick-title { font-size: 19px; font-weight: 700; margin: 4px 0 16px; max-width: 640px; line-height: 1.4; position: relative; z-index: 1; }
   .pick-actions { display: flex; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1; }
   .btn {
     border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: all .15s; font-family: inherit;
+    cursor: pointer; transition: all .15s; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
   }
   .btn:disabled { opacity: .55; cursor: default; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent-dark); }
-  .btn-ghost { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.18); }
-  .btn-ghost:hover { background: rgba(255,255,255,.18); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-ghost { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2); }
+  .btn-ghost:hover { background: rgba(255,255,255,.2); }
   .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
   .btn-outline:hover { background: var(--gray-soft); }
   .btn-sm { padding: 6px 11px; font-size: 12px; }
-  .btn-ai {
-    background: var(--purple-soft); color: var(--purple); border: 1px solid #e3d6fc;
-  }
+  .btn-ai { background: var(--purple-soft); color: var(--purple); border: 1px solid #ddd0fb; }
   .btn-ai:hover { background: #e9defb; }
 
   details { margin-bottom: 6px; border: 1px solid var(--border); border-radius: 10px; padding: 0; overflow: hidden; }
   summary {
     cursor: pointer; font-weight: 600; font-size: 13.5px; padding: 12px 14px;
-    background: #fafafb; list-style: none; display: flex; align-items: center; gap: 8px;
+    background: #fafafc; list-style: none; display: flex; align-items: center; gap: 8px;
   }
   summary::-webkit-details-marker { display: none; }
   summary::before { content: '▸'; color: var(--muted); font-size: 11px; transition: transform .15s; }
@@ -176,23 +203,25 @@
   details .inner { padding: 12px 14px 14px; }
   textarea.template {
     width: 100%; min-height: 150px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
-    border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #fafafb;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #fafbfc;
     resize: vertical; color: var(--text);
   }
   .copy-btn {
     background: var(--navy); color: #fff; border: none; border-radius: 6px;
     padding: 7px 13px; font-size: 12px; cursor: pointer; margin-top: 8px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
   }
   .copy-btn:hover { background: var(--navy-soft); }
 
   .idea-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .idea-card {
-    border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; background: #fafbfc;
+    border-radius: 10px; padding: 13px 15px; border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    background: #fafbfc; display: flex; flex-direction: column; gap: 8px;
   }
-  .idea-card .idea-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-  .idea-card .idea-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+  .idea-card .idea-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+  .idea-card .idea-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
   .idea-card .idea-btn {
-    background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px;
+    align-self: flex-start; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px;
     padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600;
   }
   .idea-card .idea-btn:hover { background: var(--gray-soft); color: var(--text); }
@@ -205,30 +234,29 @@
   }
   .controls input { flex: 1; min-width: 200px; }
 
-  .topic {
-    border: 1px solid var(--border); border-radius: 12px;
-    margin-bottom: 8px; overflow: hidden; transition: box-shadow .15s;
-  }
+  .topic { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; overflow: hidden; transition: box-shadow .15s; }
   .topic:hover { box-shadow: var(--shadow); }
-  .topic-head {
-    display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; background: var(--card);
-  }
-  .topic-head:hover { background: #fafafb; }
+  .topic-head { display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; background: var(--card); }
+  .topic-head:hover { background: #fafafc; }
   .topic-num { color: var(--muted); font-size: 11.5px; font-weight: 600; width: 26px; flex-shrink: 0; }
   .topic-title { flex: 1; font-size: 13.5px; font-weight: 500; }
   .progress-track { display: flex; gap: 2px; width: 84px; flex-shrink: 0; }
   .progress-track span { height: 5px; flex: 1; border-radius: 3px; background: var(--gray-soft); }
   .progress-track span.on { background: var(--green); }
   .badge { font-size: 10.5px; padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; font-weight: 600; }
-  .badge.cat { background: var(--gray-soft); color: var(--muted); font-weight: 500; }
   .badge.st-notstarted { background: var(--gray-soft); color: var(--muted); }
   .badge.st-research { background: var(--amber-soft); color: var(--amber); }
   .badge.st-script { background: var(--blue-soft); color: var(--blue); }
   .badge.st-json { background: var(--purple-soft); color: var(--purple); }
   .badge.st-production { background: var(--accent-soft); color: var(--accent); }
   .badge.st-posted { background: var(--green-soft); color: var(--green); }
+  .cat-0 { background: var(--red-soft); color: var(--red); } .cat-1 { background: var(--purple-soft); color: var(--purple); }
+  .cat-2 { background: var(--blue-soft); color: var(--blue); } .cat-3 { background: var(--pink-soft); color: var(--pink); }
+  .cat-4 { background: var(--accent-soft); color: var(--accent); } .cat-5 { background: var(--amber-soft); color: var(--amber); }
+  .cat-6 { background: var(--green-soft); color: var(--green); } .cat-7 { background: var(--teal-soft); color: var(--teal); }
+  .cat-8 { background: #fde8ec; color: #9d174d; } .cat-9 { background: var(--indigo-soft); color: var(--indigo); }
 
-  .topic-body { display: none; padding: 16px; border-top: 1px solid var(--border); background: #fbfbfc; }
+  .topic-body { display: none; padding: 16px; border-top: 1px solid var(--border); background: #fbfbfd; }
   .topic-body.open { display: block; }
 
   .stage-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -305,9 +333,12 @@
 <div class="wrap">
 
   <div class="page-head" id="overview">
-    <div class="eyebrow">Production Dashboard</div>
-    <h1>Content Command Center</h1>
-    <div class="sub">Business Storytelling + AI Tools channel &middot; Reels, Shorts &amp; Carousels tracker</div>
+    <div>
+      <div class="eyebrow">Production Dashboard</div>
+      <h1>Content Command Center</h1>
+      <div class="sub">Business Storytelling + AI Tools channel &middot; Reels, Shorts &amp; Carousels tracker</div>
+    </div>
+    <div class="head-badge"><svg class="ic" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>100% free stack</div>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -316,14 +347,13 @@
     <div class="pick-eyebrow">Today's Pick</div>
     <div class="pick-title" id="pickTitle">&mdash;</div>
     <div class="pick-actions">
-      <button class="btn btn-primary" onclick="pickRandom()">Suggest New Topic</button>
-      <button class="btn btn-ghost" id="pickResearchBtn" onclick="copyPickResearch()">Copy Research Prompt</button>
+      <button class="btn btn-primary" onclick="pickRandom()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 2v6h-6M3 22v-6h6M3.5 9a8.5 8.5 0 0 1 14.9-4.9M20.5 15a8.5 8.5 0 0 1-14.9 4.9"/></svg>Suggest New Topic</button>
+      <button class="btn btn-ghost" id="pickResearchBtn" onclick="copyPickResearch()"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy Research Prompt</button>
     </div>
   </div>
 
   <div class="card" id="pipeline">
-    <h2>Daily Production Workflow</h2>
-    <div class="card-sub">Every topic moves through these six stages, start to finish.</div>
+    <div class="card-head"><div class="card-icon i-accent"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></div><div class="card-text"><h2>Daily Production Workflow</h2><div class="card-sub" style="margin-bottom:0">Every topic moves through these six stages, start to finish.</div></div></div>
     <div class="workflow">
       <div class="wf-step"><div class="circle">1</div><div class="wf-title">Research</div><div class="wf-desc">Run the Perplexity prompt for the topic</div></div>
       <div class="wf-line"></div>
@@ -340,20 +370,17 @@
   </div>
 
   <div class="card" id="ideas">
-    <h2>Trending Reels Ideas</h2>
-    <div class="card-sub">Formats working right now in the business/education niche — adapt, don't copy directly.</div>
+    <div class="card-head"><div class="card-icon i-pink"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M23 6 13.5 15.5l-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="card-text"><h2>Trending Reels Ideas</h2><div class="card-sub" style="margin-bottom:0">Formats working right now in the business/education niche — adapt, don't copy directly.</div></div></div>
     <div class="idea-grid" id="reelsIdeas"></div>
   </div>
 
   <div class="card">
-    <h2>Carousel Ideas Bank</h2>
-    <div class="card-sub">Viral carousel formats for AI/business content, with an image-style prompt for each.</div>
+    <div class="card-head"><div class="card-icon i-purple"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><div class="card-text"><h2>Carousel Ideas Bank</h2><div class="card-sub" style="margin-bottom:0">Viral carousel formats for AI/business content, with an image-style prompt for each.</div></div></div>
     <div class="idea-grid" id="carouselIdeas"></div>
   </div>
 
   <div class="card" id="templates">
-    <h2>Reusable Templates</h2>
-    <div class="card-sub">Copy-paste prompts used at every stage of production.</div>
+    <div class="card-head"><div class="card-icon i-blue"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></div><div class="card-text"><h2>Reusable Templates</h2><div class="card-sub" style="margin-bottom:0">Copy-paste prompts used at every stage of production.</div></div></div>
     <details>
       <summary>Perplexity Research Prompt</summary>
       <div class="inner">
@@ -371,8 +398,7 @@
   </div>
 
   <div class="card" id="topics">
-    <h2>100 Topics — Content Library</h2>
-    <div class="card-sub">Click a topic to open its full production pipeline.</div>
+    <div class="card-head"><div class="card-icon i-teal"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg></div><div class="card-text"><h2>100 Topics — Content Library</h2><div class="card-sub" style="margin-bottom:0">Click a topic to open its full production pipeline.</div></div></div>
     <div class="controls">
       <input type="text" id="search" placeholder="Search topic..." oninput="render()">
       <select id="catFilter" onchange="render()"><option value="">All Categories</option></select>
@@ -618,6 +644,17 @@ const JSON_TEMPLATE = `{
   "negative_prompt": "No women. No other men. No extra people. No extra presenter. No face except the uploaded avatar. No distorted hands."
 }`;
 
+const ICONS = {
+  research: '<svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
+  script: '<svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>',
+  json: '<svg class="ic" viewBox="0 0 24 24"><path d="M16 3H8a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h8"/></svg>',
+  video: '<svg class="ic" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5V7Z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+  edited: '<svg class="ic" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>',
+  posted: '<svg class="ic" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
+  wand: '<svg class="ic" viewBox="0 0 24 24"><path d="m15 4 1.5 1.5M4 20l9-9M18 12l1.5 1.5M9 4 4 9M15.5 8.5 20 4"/></svg>',
+  copy: '<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'
+};
+
 let topicsCache = {};
 let seeded = false;
 let currentPick = null;
@@ -657,6 +694,9 @@ function stageClass(s) {
 function statClass(s) {
   return {'Not Started':'s-notstarted','Researching':'s-research','Script Ready':'s-script','JSON Ready':'s-json','In Production':'s-production','Posted':'s-posted'}[s];
 }
+function statIcon(s) {
+  return {'Not Started':ICONS.copy,'Researching':ICONS.research,'Script Ready':ICONS.script,'JSON Ready':ICONS.json,'In Production':ICONS.video,'Posted':ICONS.posted}[s];
+}
 
 async function updateField(tid, field, value, btn) {
   await setDoc(doc(db, 'topics', String(tid)), {[field]: value}, {merge: true});
@@ -684,19 +724,15 @@ window.copyPickResearch = function() {
   if (!currentPick) return;
   copyPlain(buildResearchPrompt(currentPick.title));
   const btn = document.getElementById('pickResearchBtn');
-  const orig = btn.textContent;
+  const orig = btn.innerHTML;
   btn.textContent = 'Copied!';
-  setTimeout(() => { btn.textContent = orig; }, 1500);
+  setTimeout(() => { btn.innerHTML = orig; }, 1500);
 }
 
 window.copyTopicResearch = function(tid, title) { copyPlain(buildResearchPrompt(title)); }
-
 window.copyIdea = function(title, desc) { copyPlain(title + ' — ' + desc); }
 
-// Settings / Gemini key
-window.toggleSettings = function() {
-  document.getElementById('settingsPanel').classList.toggle('open');
-}
+window.toggleSettings = function() { document.getElementById('settingsPanel').classList.toggle('open'); }
 window.saveGeminiKey = function() {
   const v = document.getElementById('geminiKeyInput').value.trim();
   if (v) { localStorage.setItem('geminiKey', v); alert('Key saved on this device.'); }
@@ -758,19 +794,20 @@ function renderStats() {
   TOPICS.forEach(t => { const s = stageOf(getData(t.id)); counts[s] = (counts[s]||0)+1; });
   const el = document.getElementById('stats');
   el.innerHTML = Object.entries(counts).map(([k,v]) =>
-    `<div class="stat ${statClass(k)}"><b>${v}</b><span>${k}</span></div>`).join('');
+    `<div class="stat ${statClass(k)}"><div class="icon-circle">${statIcon(k)}</div><b>${v}</b><span>${k}</span></div>`).join('');
 }
 
 function renderIdeas() {
-  document.getElementById('reelsIdeas').innerHTML = REELS_IDEAS.map(i => `
-    <div class="idea-card">
-      <div class="idea-title">${i.title}</div>
+  const colors = ['red','purple','blue','pink','accent','amber'];
+  document.getElementById('reelsIdeas').innerHTML = REELS_IDEAS.map((i,idx) => `
+    <div class="idea-card" style="border-left-color:var(--${colors[idx%colors.length]})">
+      <div class="idea-title">${ICONS.video}${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
       <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.desc)})">Copy angle</button>
     </div>`).join('');
-  document.getElementById('carouselIdeas').innerHTML = CAROUSEL_IDEAS.map(i => `
-    <div class="idea-card">
-      <div class="idea-title">${i.title}</div>
+  document.getElementById('carouselIdeas').innerHTML = CAROUSEL_IDEAS.map((i,idx) => `
+    <div class="idea-card" style="border-left-color:var(--${colors[idx%colors.length]})">
+      <div class="idea-title">${ICONS.json}${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
       <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.desc)})">Copy angle</button>
     </div>`).join('');
@@ -798,6 +835,7 @@ window.render = function render() {
   }).forEach(t => {
     const d = getData(t.id);
     const s = stageOf(d);
+    const catIdx = CATEGORIES.indexOf(t.cat);
     const div = document.createElement('div');
     div.className = 'topic';
     const progressDots = STAGES.map(st => `<span class="${d[st.key] ? 'on' : ''}"></span>`).join('');
@@ -805,7 +843,7 @@ window.render = function render() {
       <div class="topic-head" onclick="toggleTopic(${t.id})">
         <span class="topic-num">#${t.id}</span>
         <span class="topic-title">${t.title}</span>
-        <span class="badge cat">${t.cat}</span>
+        <span class="badge cat-${catIdx}">${t.cat}</span>
         <div class="progress-track">${progressDots}</div>
         <span class="badge ${stageClass(s)}">${s}</span>
       </div>
@@ -818,12 +856,12 @@ window.render = function render() {
         </div>
 
         <div class="field-label">Research Notes <span class="saved-tag">Saved</span>
-          <span class="spacer"><button class="copy-btn" style="margin:0;padding:4px 9px;" onclick="copyTopicResearch(${t.id}, ${JSON.stringify(t.title)})">Copy Research Prompt</button></span>
+          <span class="spacer"><button class="copy-btn" style="margin:0;padding:4px 9px;" onclick="copyTopicResearch(${t.id}, ${JSON.stringify(t.title)})">${ICONS.copy}Copy Research Prompt</button></span>
         </div>
         <textarea data-field="research" onblur="updateField(${t.id},'research',this.value,this.parentElement.querySelector('.saved-tag'))" placeholder="Paste Perplexity research output here...">${d.research||''}</textarea>
 
         <div class="field-label">Script <span class="saved-tag">Saved</span>
-          <span class="spacer"><button class="btn btn-ai btn-sm" onclick="generateScript(${t.id}, ${JSON.stringify(t.title)}, this)">Generate with AI</button></span>
+          <span class="spacer"><button class="btn btn-ai btn-sm" onclick="generateScript(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate with AI</button></span>
         </div>
         <textarea data-field="script" onblur="updateField(${t.id},'script',this.value,this.previousElementSibling.querySelector('.saved-tag'))" placeholder="Paste or write the script here, or click Generate with AI above...">${d.script||''}</textarea>
 
@@ -831,7 +869,7 @@ window.render = function render() {
         <textarea data-field="json" onblur="updateField(${t.id},'json',this.value,this.previousElementSibling)" placeholder="Paste the JSON scenes here...">${d.json||''}</textarea>
 
         <div class="field-label">Carousel (Slides + Image Prompts) <span class="saved-tag">Saved</span>
-          <span class="spacer"><button class="btn btn-ai btn-sm" onclick="generateCarousel(${t.id}, ${JSON.stringify(t.title)}, this)">Generate with AI</button></span>
+          <span class="spacer"><button class="btn btn-ai btn-sm" onclick="generateCarousel(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate with AI</button></span>
         </div>
         <textarea data-field="carousel" onblur="updateField(${t.id},'carousel',this.value,this.previousElementSibling.querySelector('.saved-tag'))" placeholder="Click Generate with AI above, or paste carousel slide copy + image prompts here...">${d.carousel||''}</textarea>
 
