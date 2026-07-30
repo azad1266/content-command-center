@@ -700,6 +700,22 @@ const CATEGORY_ANGLES = {
   "Underdog/Comeback Stories": "Also specifically dig into: the exact lowest point with specific detail, the single decision or lucky break that changed the trajectory, and the hard numbers of the eventual comeback (valuation, users, revenue)."
 };
 
+// Distilled from a deep-dive study of 18 top global faceless business-storytelling channels
+// (MagnatesMedia, Company Man, Logically Answered, Wendover, Wall Street Millennial, etc.) —
+// each category borrows the exact narrative structure of the channel that performs best in it.
+const CATEGORY_STRUCTURE = {
+  "Business Collapse/Failure": "STRUCTURE (Company Man style): never blame one single mistake. Walk through 3-4 compounding decisions in order, each making the next one worse, before the final collapse.",
+  "Hidden Business Models": "STRUCTURE (Logically Answered style): build the entire script around ONE question — \"how does [X] actually make money\" — planted in Part 1, only answered in Part 4.",
+  "Founder Psychology & Decisions": "STRUCTURE (Aperture essay style): don't just state what the founder decided — spend real time on WHY, from inside their head, before revealing the consequence.",
+  "Marketing Psychology Tricks": "STRUCTURE (Wendover systems style): frame it as \"how does this trick actually work\" and walk through the mechanism step by step, like explaining a machine.",
+  "Company Rivalries & Wars": "STRUCTURE (MagnatesMedia style): alternate between both sides' moves chronologically like a boxing match, save who's winning today for the final part.",
+  "Pricing Psychology": "STRUCTURE (Slidebean style): lean on exact numbers as the emotional backbone — open with one specific, striking price or revenue figure, never a vague statement.",
+  "Indian Business Stories": "STRUCTURE (MagnatesMedia style): ground every stat in an India-vs-global-peer comparison for extra credibility.",
+  "Global Tech Secrets": "STRUCTURE (Newsthink reporter style): state the reveal like breaking news, not a slow documentary build.",
+  "Scams & Frauds": "STRUCTURE (Wall Street Millennial style): open by directly challenging the popular belief (\"everyone thinks X... but\") before methodically building the skeptical case.",
+  "Underdog/Comeback Stories": "STRUCTURE (MagnatesMedia reversed): open AT the lowest point, not the origin story, then build up to the comeback as the twist."
+};
+
 function buildResearchPrompt(topic) {
   const title = typeof topic === 'string' ? topic : topic.title;
   const cat = typeof topic === 'string' ? '' : topic.cat;
@@ -886,7 +902,7 @@ function hasAnyKey() {
 }
 
 async function callGeminiWithKey(key, prompt) {
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({contents: [{parts: [{text: prompt}]}]})
@@ -924,7 +940,7 @@ async function callGemini(prompt) {
 }
 
 async function callGeminiGroundedWithKey(key, prompt) {
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${key}`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify({contents: [{parts: [{text: prompt}]}], tools: [{google_search: {}}]})
@@ -959,7 +975,8 @@ async function doGenerateScript(tid, researchText, previousScript) {
   const topic = TOPICS.find(x => x.id === tid);
   const title = topic ? topic.title : '';
   const retryClause = previousScript ? `\n\nA previous script for this topic was already generated (shown below). Write a NEW version that is genuinely better — a stronger hook, tighter pacing, sharper word choice, or a different structural angle on the same facts. Do not just lightly reword the same script; make a real creative improvement.\n\nPREVIOUS VERSION (write something noticeably different/better than this):\n${previousScript}` : '';
-  const prompt = `You are one of the world's best short-form video scriptwriters, trained on the hook and retention techniques used by the top-performing YouTube Shorts and Instagram Reels creators globally (fast pattern interrupts, open loops, escalating stakes, satisfying payoffs). You write for a Hindi business-storytelling channel using a single AI avatar talking to camera.\n\nUsing the research below, write a NEW 5-part script for this topic, in EXACTLY the same format and part-count as this reference example:\n\n${MCDONALDS_SCRIPT}\n\nWORLD-CLASS SCRIPT RULES:\n- HOOK (Part 1, first line): open with ONE of these — a shocking number/stat, a contrarian statement that challenges what people assume, or a mystery question that demands an answer. Never start with "aaj hum baat karenge" or any throat-clearing.\n- OPEN LOOP: by the end of Part 1, plant a question in the viewer's mind that only gets answered later — this is what stops the skip/scroll.\n- ESCALATION: Parts 2-3 must each add a new twist or raise the stakes versus what was just said — never just restate the same fact two different ways.\n- MICRO-CLIFFHANGERS: end Parts 1-4 on an incomplete thought or a "but here's the twist" style bridge — never a flat, closed sentence that lets attention drop.\n- PAYOFF: Part 4 must deliver the "aha" — the actual reveal the hook promised — ideally backed by a real quote from the research.\n- LESSON + CTA: Part 5 gives one clear, practical takeaway, then a natural "follow karo" CTA — never salesy or robotic.\n- VOICE: write exactly like explaining this to a smart friend over chai — simple spoken Hindi/Hinglish, mostly 6-12 word sentences, active voice, zero filler words (avoid "basically", "actually", "essentially"), concrete numbers instead of vague amounts.\n- Use ONLY facts present in the research below — never invent numbers, dates, or quotes.\n- Keep total spoken length to roughly 45-60 seconds across the 5 parts, matching the example's pacing.${retryClause}\n\nTopic: ${title}\nCategory: ${topic ? topic.cat : ''}\nResearch:\n${researchText}`;
+  const structureNote = CATEGORY_STRUCTURE[topic ? topic.cat : ''] || '';
+  const prompt = `You are one of the world's best short-form video scriptwriters, trained on the hook and retention techniques used by the top-performing YouTube Shorts and Instagram Reels creators globally (fast pattern interrupts, open loops, escalating stakes, satisfying payoffs). You write for a Hindi business-storytelling channel using a single AI avatar talking to camera.\n\nUsing the research below, write a NEW 5-part script for this topic, in EXACTLY the same format and part-count as this reference example:\n\n${MCDONALDS_SCRIPT}\n\n${structureNote}\n\nWORLD-CLASS SCRIPT RULES:\n- HOOK (Part 1, first line): open with ONE of these — a shocking number/stat, a contrarian statement that challenges what people assume, or a mystery question that demands an answer. Never start with "aaj hum baat karenge" or any throat-clearing.\n- OPEN LOOP: by the end of Part 1, plant a question in the viewer's mind that only gets answered later — this is what stops the skip/scroll.\n- ESCALATION: Parts 2-3 must each add a new twist or raise the stakes versus what was just said — never just restate the same fact two different ways.\n- MICRO-CLIFFHANGERS: end Parts 1-4 on an incomplete thought or a "but here's the twist" style bridge — never a flat, closed sentence that lets attention drop.\n- PAYOFF: Part 4 must deliver the "aha" — the actual reveal the hook promised — ideally backed by a real quote from the research.\n- LESSON + CTA: Part 5 gives one clear, practical takeaway, then a natural "follow karo" CTA — never salesy or robotic.\n- VOICE: write exactly like explaining this to a smart friend over chai — simple spoken Hindi/Hinglish, mostly 6-12 word sentences, active voice, zero filler words (avoid "basically", "actually", "essentially"), concrete numbers instead of vague amounts.\n- Use ONLY facts present in the research below — never invent numbers, dates, or quotes.\n- Keep total spoken length to roughly 45-60 seconds across the 5 parts, matching the example's pacing.${retryClause}\n\nTopic: ${title}\nCategory: ${topic ? topic.cat : ''}\nResearch:\n${researchText}`;
   const out = await callGemini(prompt);
   if (out) {
     await updateField(tid, 'script', out);
@@ -969,7 +986,7 @@ async function doGenerateScript(tid, researchText, previousScript) {
 }
 
 async function doGenerateJson(tid, scriptText) {
-  const prompt = `You are a video director breaking a finalized Hindi voiceover script into a scene-by-scene Google Flow generation plan for a single locked AI avatar. Convert the script below into a JSON array, one object per script part (5-6 parts), in EXACTLY this format and field structure:\n\n${MCDONALDS_JSON}\n\nRules:\n- Part 1 "generation_type" must say "FRESH generation — attach Ingredients avatar reference image here". Every other part must say "EXTEND from Part N — do NOT restart Ingredients."\n- "dialogue" must be copied EXACTLY from the script for that part — do not paraphrase or shorten it.\n- "b_roll" must be a specific, real-world visual tied to what's actually being said in that part (not a generic placeholder) — no humans in b-roll.\n- "motion_graphics" should surface the single most important number, name, or phrase from that part's dialogue.\n- Keep "negative_prompt" identical across all parts: no women, no other men, no extra people, no extra presenter, no face except the uploaded avatar, no distorted hands.\n- Output ONLY the JSON array, no markdown fences, no extra commentary.\n\nScript:\n${scriptText}`;
+  const prompt = `You are a video director breaking a finalized Hindi voiceover script into a scene-by-scene Google Flow generation plan for a single locked AI avatar. Convert the script below into a JSON array, one object per script part (5-6 parts), in EXACTLY this format and field structure:\n\n${MCDONALDS_JSON}\n\nRules:\n- Part 1 "generation_type" must say "FRESH generation — attach Ingredients avatar reference image here". Every other part must say "EXTEND from Part N — do NOT restart Ingredients."\n- "dialogue" must be copied EXACTLY from the script for that part — do not paraphrase or shorten it.\n- "b_roll" must be a specific, real-world visual tied to what's actually being said in that part (not a generic placeholder) — no humans in b-roll.\n- "motion_graphics" should surface the single most important number, name, or phrase from that part's dialogue.\n- RETENTION RULE (benchmarked against Kurzgesagt-style animated explainers, which hold 55-70% mid-video retention vs 40-60% for static b-roll documentaries): if any single part's dialogue runs long, split its b_roll/motion_graphics idea into two beats so the visual changes at least once every 10-15 seconds of that part — never one static visual for more than ~15 seconds.\n- Keep "negative_prompt" identical across all parts: no women, no other men, no extra people, no extra presenter, no face except the uploaded avatar, no distorted hands.\n- Output ONLY the JSON array, no markdown fences, no extra commentary.\n\nScript:\n${scriptText}`;
   const out = await callGemini(prompt);
   if (out) {
     await updateField(tid, 'json', out);
