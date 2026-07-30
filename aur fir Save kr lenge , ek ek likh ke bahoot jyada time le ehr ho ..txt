@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content Command Center</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d9480f">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f7f8;
+    --card: #ffffff;
+    --border: #e5e5e8;
+    --text: #1a1a1e;
+    --muted: #6b6b73;
+    --accent: #d9480f;
+    --accent-soft: #fff1e9;
+    --green: #1a7f37;
+    --green-soft: #e6f7ea;
+    --blue: #1958c1;
+    --blue-soft: #e8f0fe;
+    --purple: #6f42c1;
+    --purple-soft: #f2ecfb;
+    --gray-soft: #eeeef0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+  .sync-status { font-size: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+  .dot.live { background: var(--green); }
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 14px; font-size: 13px; flex: 1; min-width: 110px;
+  }
+  .stat b { display: block; font-size: 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 15px; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+  details { margin-bottom: 8px; }
+  summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
+  textarea.template {
+    width: 100%; min-height: 160px; font-family: ui-monospace, monospace; font-size: 12px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #fafafa;
+    resize: vertical;
+  }
+  .copy-btn {
+    background: var(--accent); color: white; border: none; border-radius: 6px;
+    padding: 6px 12px; font-size: 12px; cursor: pointer; margin-top: 6px;
+  }
+  .copy-btn:hover { opacity: 0.9; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .controls input, .controls select {
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;
+    background: var(--card); color: var(--text);
+  }
+  .controls input { flex: 1; min-width: 180px; }
+  .topic {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 8px; overflow: hidden;
+  }
+  .topic-head {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer;
+  }
+  .topic-head:hover { background: #fafafa; }
+  .topic-num { color: var(--muted); font-size: 12px; width: 28px; flex-shrink: 0; }
+  .topic-title { flex: 1; font-size: 13.5px; }
+  .badge {
+    font-size: 11px; padding: 3px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+  }
+  .badge.cat { background: var(--gray-soft); color: var(--muted); }
+  .badge.status-notstarted { background: var(--gray-soft); color: var(--muted); }
+  .badge.status-scriptready { background: var(--blue-soft); color: var(--blue); }
+  .badge.status-jsonready { background: var(--purple-soft); color: var(--purple); }
+  .badge.status-inproduction { background: var(--accent-soft); color: var(--accent); }
+  .badge.status-posted { background: var(--green-soft); color: var(--green); }
+  .topic-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
+  .topic-body.open { display: block; }
+  .field-label { font-size: 12px; font-weight: 600; margin: 12px 0 4px; color: var(--muted); }
+  .topic-body textarea {
+    width: 100%; min-height: 90px; font-size: 12.5px; border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px; font-family: ui-monospace, monospace; resize: vertical;
+    background: #fafafa;
+  }
+  .status-select { margin-top: 10px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 12.5px; }
+  .pick-box {
+    background: linear-gradient(135deg, var(--accent-soft), #fff);
+    border: 1px solid #f3c8ab; border-radius: 12px; padding: 16px 18px; margin-bottom: 16px;
+  }
+  .pick-box h2 { margin: 0 0 6px; font-size: 15px; }
+  .pick-title { font-size: 16px; font-weight: 700; margin: 6px 0; }
+  .pick-btn {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 8px 14px; font-size: 13px; cursor: pointer; margin-top: 8px;
+  }
+  .saved-tag { font-size: 11px; color: var(--green); margin-left: 8px; opacity: 0; transition: opacity 0.3s; }
+  .saved-tag.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Content Command Center</h1>
+  <div class="sub">Business Storytelling + AI Tools channel &middot; Reels, Shorts &amp; Carousels tracker</div>
+  <div class="sync-status"><span class="dot" id="syncDot"></span><span id="syncText">Connecting...</span></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="pick-box">
+    <h2>Today's Pick</h2>
+    <div class="pick-title" id="pickTitle">&mdash;</div>
+    <button class="pick-btn" onclick="pickRandom()">Suggest New Topic</button>
+  </div>
+
+  <div class="card">
+    <h2>Reusable Templates</h2>
+    <details>
+      <summary>Perplexity Research Prompt</summary>
+      <textarea class="template" readonly id="tplResearch"></textarea>
+      <button class="copy-btn" onclick="copyText('tplResearch')">Copy</button>
+    </details>
+    <details>
+      <summary>Google Flow &mdash; Scene JSON Template</summary>
+      <textarea class="template" readonly id="tplJson"></textarea>
+      <button class="copy-btn" onclick="copyText('tplJson')">Copy</button>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>100 Topics &mdash; Content Library</h2>
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search topic..." oninput="render()">
+      <select id="catFilter" onchange="render()"><option value="">All Categories</option></select>
+      <select id="statusFilter" onchange="render()">
+        <option value="">All Status</option>
+        <option value="Not Started">Not Started</option>
+        <option value="Script Ready">Script Ready</option>
+        <option value="JSON Ready">JSON Ready</option>
+        <option value="In Production">In Production</option>
+        <option value="Posted">Posted</option>
+      </select>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, onSnapshot, getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAgTawBW7-xwxgCRQ4S4eJaCB-aTsEm9rE",
+  authDomain: "addy-content-machine.firebaseapp.com",
+  projectId: "addy-content-machine",
+  storageBucket: "addy-content-machine.firebasestorage.app",
+  messagingSenderId: "935601887728",
+  appId: "1:935601887728:web:ba320d87e9e88ae9f2e535",
+  measurementId: "G-JM9T9CLHMX"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const topicsCol = collection(db, "topics");
+
+const CATEGORIES = ["Business Collapse/Failure","Hidden Business Models","Founder Psychology & Decisions","Marketing Psychology Tricks","Company Rivalries & Wars","Pricing Psychology","Indian Business Stories","Global Tech Secrets","Scams & Frauds","Underdog/Comeback Stories"];
+
+const RAW_TOPICS = [
+["Business Collapse/Failure",[
+"Kodak ne Digital Camera Banaya Tha, Phir Bhi Kyun Dooba?",
+"Blockbuster ne Netflix ko $50 Million mein Kyun Reject Kiya?",
+"Nokia Duniya ka No.1 Tha, 5 Saal mein Khatam Kaise Hua?",
+"Yahoo ne Google ko $1 Million mein Khareedne ka Mauka Gawaya",
+"BlackBerry: Phone Business ka Baadshah, Ab Kahan Hai?",
+"WeWork: $47 Billion Company 1 Din mein Kaise Girr Gayi?",
+"Quibi: $1.75 Billion Kharch Karke Bhi 6 Mahine mein Bandh",
+"MySpace: Facebook se Pehle No.1, Phir Gayab Kaise Hua?",
+"Toys \"R\" Us Bankrupt Kaise Hua?",
+"Pan Am: Famous Airline Band Kyun Ho Gayi?"]],
+["Hidden Business Models",[
+"McDonald's Asli Business Burger Nahi, Real Estate Hai",
+"Starbucks Coffee Nahi, \"Third Place\" Bech Raha Hai",
+"Gillette Razor Sasta Kyun? Asli Trick Blade Mein Hai",
+"Costco Sirf Membership Fee se Profit Kamata Hai",
+"Amazon 20 Saal Loss Mein Tha, Phir Bhi Sabse Bada Kyun Bana?",
+"Netflix Content Nahi, Data Bech Raha Hai",
+"IKEA Furniture Adhoora Kyun Deta Hai? Psychology Trick",
+"Apple iPhone Sasta Bhi Bana Sakta Hai, Phir Mehenga Kyun?",
+"Google Free Hai, Phir $200 Billion Kaise Kamata Hai?",
+"Spotify Free Users se Bhi Paisa Kaise Banata Hai?"]],
+["Founder Psychology & Decisions",[
+"Elon Musk ne Tesla Doobne se 1 Din Pehle Kya Kiya?",
+"Jeff Bezos ka \"Day 1\" Rule Kya Hai?",
+"Steve Jobs Apple Se Nikaale Gaye, Wapas Kaise Aaye?",
+"Sam Altman ne OpenAI ke Liye Kaisa Risk Liya?",
+"Zuckerberg ne Instagram $1 Billion mein Kyun Khareeda?",
+"Ratan Tata ne Nano Car ka Sapna Kyun Chhoda?",
+"Dhirubhai Ambani ka Woh Decision Jisne Reliance Banaya",
+"Jack Ma 30 Baar Reject Hue, Phir Alibaba Kaise Bana?",
+"Sundar Pichai Chai Bechte the, Google CEO Kaise Bane?",
+"Phil Knight ne Nike Shuru Karne Car Kyun Bechi?"]],
+["Marketing Psychology Tricks",[
+"Red Bull Energy Drink Nahi, \"Feeling\" Bechta Hai",
+"Nike Shoes Nahi, Identity Bechta Hai",
+"De Beers ne \"Diamond Hai Forever\" Se Market Banaya",
+"CRED App Discount Nahi, Status Symbol Bechta Hai",
+"Zomato/Swiggy Discount War Asal Mein Kya Thi?",
+"Airbnb ne Craigslist Se Growth Hack Kaise Kiya?",
+"Dropbox ne Bina Ads ke Users Kaise Badhaye?",
+"Coca-Cola ka Secret Formula Kitna Sach Hai?",
+"Old Spice ne Boring Brand Viral Kaise Banaya?",
+"Duolingo ka \"Scary Owl\" Itna Successful Kyun Hai?"]],
+["Company Rivalries & Wars",[
+"Pepsi vs Coca-Cola: 100 Saal Purani Jung",
+"Ola vs Uber: India Mein Kaun Jeeta, Kaise?",
+"Byju's $22 Billion se Bankrupt Tak Kaise Pahuncha?",
+"Flipkart vs Amazon: India Mein Kiska Palla Bhari?",
+"Jio vs Airtel: Free Data Ki Jung Ne Market Kaise Badla?",
+"PayPal Mafia: Musk aur Thiel Ek Saath The?",
+"Apple vs Samsung: Patent War Mein Kaun Jeeta?",
+"BlackBerry vs iPhone: Ek Galti Jisne Sab Badla",
+"Xiaomi ne India Mein Samsung Ko Kaise Peeche Chhoda?",
+"Boat vs Noise: India Ke Earphone Market Ki Jung"]],
+["Pricing Psychology",[
+"Prices ₹99, ₹999 Mein Kyun Khatam Hote Hain?",
+"Companies Aapko Subscription Cancel Karne Se Kyun Rokti Hain?",
+"Buffet Restaurants Loss Mein Kyun Nahi Jaate?",
+"\"Limited Time Offer\" Sach Hota Hai Ya Trick?",
+"Freemium Model: Free Dekar Bhi Paisa Kaise Banate Hain?",
+"Airlines Har Seat Ka Alag Price Kyun Lete Hain?",
+"Luxury Brands Jaanbujh Kar Sasta Kyun Nahi Hote?",
+"Decoy Pricing: Beech Wala Option Hamesha Kyun Hota Hai?",
+"Movie Tickets Weekend Pe Mehenge Kyun Hote Hain?",
+"Amazon Prime Ka Asli Fayda Delivery Nahi Hai"]],
+["Indian Business Stories",[
+"Zerodha Ne Bina Marketing Ke No.1 Broker Kaise Banaya?",
+"Patanjali Ne FMCG Giants Ko 10 Saal Mein Kaise Takkar Di?",
+"Nykaa IPO Story: Falguni Nayar Ka Risk",
+"OYO Rooms Ka Controversial Business Model Kya Hai?",
+"Paytm Ki Journey: UPI Se Pehle Number 1 Kaun Tha?",
+"BharatPe Ka Scandal: Startup Kaise Doob Gaya?",
+"Ola Electric Ka Bet: Sahi Decision Tha?",
+"Dunzo Se CRED Tak: India Ke Startup Fails Ka Sach",
+"Haldiram's: Family Business Jo MNC Se Bhi Bada Bana",
+"Titan Ka Watch Se Jewellery Tak Ka Safar"]],
+["Global Tech Secrets",[
+"Google Ka \"20% Time\" Rule Jisse Gmail Bana",
+"Amazon Ki \"Two Pizza Team\" Rule Kya Hai?",
+"Apple Ki Secrecy: Product Leak Kabhi Kyun Nahi Hota?",
+"Tesla Batteries Khud Kyun Banata Hai?",
+"Facebook Ne WhatsApp $19 Billion Mein Kyun Khareeda?",
+"Microsoft Ka Comeback Jab Sab Bol Rahe The \"Khatam\"",
+"AWS: Amazon Ka \"Side Business\" Jo Asli Paisa Hai",
+"TikTok Ka Algorithm Itna Addictive Kyun Hai?",
+"OpenAI Non-Profit Se Trillion Dollar Company Kaise Bana?",
+"Nvidia Gaming Cards Bechte The, AI King Kaise Bane?"]],
+["Scams & Frauds",[
+"Theranos: $9 Billion Ka Fraud Ek Jhoothi Machine Pe",
+"FTX: Crypto Ki Sabse Badi Dhoka-Dhadi Story",
+"Nirav Modi Ne PNB Se ₹14,000 Crore Kaise Udaye?",
+"Satyam Scam: India Ka Sabse Bada Corporate Fraud",
+"Bernie Madoff: $65 Billion Ki Ponzi Scheme",
+"Enron: Duniya Ki Sabse Badi Accounting Fraud",
+"Wirecard: Germany Ka Sabse Bada Corporate Scandal",
+"Vijay Mallya: Kingfisher Se Bankrupt Tak Ka Safar",
+"Elizabeth Holmes: Chhoti Billionaire Jo Fraud Nikli",
+"Sahara Scam: India Ki Sabse Badi Chit Fund Fraud"]],
+["Underdog/Comeback Stories",[
+"Airbnb Founders Cereal Bechte The Company Bachane Ke Liye",
+"Spanx: Bina Investment $1 Billion Company Kaise Bani?",
+"KFC Ke Colonel Sanders 1000 Baar Reject Hue The",
+"Canva Founders Ko 100+ VCs Ne Reject Kiya Tha",
+"Slack Ek Failed Gaming Company Se Bana Tha",
+"Instagram Pehle Alag App Tha, Kaise Pivot Hua?",
+"Airbnb Ne 2008 Recession Mein Kaise Survive Kiya?",
+"Zoom Ne COVID Se Pehle Hi Jagah Kaise Banayi?",
+"Shark Tank India Ke Reject Startups Jo Ab Successful Hain",
+"Byju's Chhote Tuition Class Se $22 Billion Tak Kaise Pahuncha?"]]
+];
+
+let TOPICS = [];
+let id = 1;
+RAW_TOPICS.forEach(([cat, titles]) => {
+  titles.forEach(title => { TOPICS.push({id: id++, cat, title}); });
+});
+
+const MCDONALDS_SCRIPT = `SHORT 1 — "McDonald's Asli Business Burger Nahi, Real Estate Hai" (5-part merged version)
+
+PART 1 (Hook + Setup):
+McDonald's duniya ka sabse bada Burger brand hai — lekin iski asli kamai burger se nahi aati। 1955 mein Ray Kroc ne McDonald's franchise shuru kiya।
+
+PART 2 (Twist + Strategy):
+Lekin business chalte-chalte ek insaan ne poora game hi badal diya — Harry Sonneborn। 1956 mein usne McDonald's Franchise Realty Corp banayi — company khud property khareede ya lease pe le, phir franchise owners ko rent pe de।
+
+PART 3 (Core Reveal):
+Matlab McDonald's ab sirf burger nahi bech raha tha, woh landlord ban gaya tha। Har franchise owner McDonald's ko rent, royalty, aur fees deta hai।
+
+PART 4 (Quote + Why it works):
+Sonneborn ne khud kaha tha: "We are not technically in the food business. We are in the real estate business." Yahi strategy McDonald's ko itna stable banati hai — rent ki income sales ke saath badhti rehti hai।
+
+PART 5 (Lesson + CTA):
+Lesson: apna product hi mat dekho — socho, kaunsa asset aapko long-term control de sakta hai। Aise hi hidden business secrets ke liye follow karo।`;
+
+const MCDONALDS_JSON = `[
+  {"part":1,"duration":"12-14 seconds","generation_type":"FRESH generation — attach Ingredients avatar reference image here","dialogue":"McDonald's duniya ka sabse bada Burger brand hai — lekin iski asli kamai burger se nahi aati। 1955 mein Ray Kroc ne McDonald's franchise shuru kiya।","b_roll":"Golden Arches at night, vintage 1950s diner photos. No humans.","motion_graphics":"$27 BILLION • NOT FROM BURGERS / 1955 • RAY KROC"},
+  {"part":2,"duration":"13-15 seconds","generation_type":"EXTEND from Part 1 — do NOT restart Ingredients.","dialogue":"Lekin business chalte-chalte ek insaan ne poora game hi badal diya — Harry Sonneborn। 1956 mein usne McDonald's Franchise Realty Corp banayi।","b_roll":"Silhouette/spotlight graphic, real estate documents. No humans.","motion_graphics":"HARRY SONNEBORN • 1956 • OWN THE LAND"},
+  {"part":3,"duration":"7-8 seconds","generation_type":"EXTEND from Part 2 — do NOT restart Ingredients.","dialogue":"Matlab McDonald's ab sirf burger nahi bech raha tha, woh landlord ban gaya tha।","b_roll":"Rent/money icons, rising value graphic. No humans.","motion_graphics":"LANDLORD, NOT BURGER SELLER"},
+  {"part":4,"duration":"13-15 seconds","generation_type":"EXTEND from Part 3 — do NOT restart Ingredients.","dialogue":"Sonneborn ne khud kaha tha: 'We are in the real estate business.' Yahi strategy McDonald's ko stable banati hai।","b_roll":"Quote text overlay, upward trending graph. No humans.","motion_graphics":"STABLE INCOME"},
+  {"part":5,"duration":"7-8 seconds","generation_type":"EXTEND from Part 4 — do NOT restart Ingredients.","dialogue":"Lesson: apna product hi mat dekho — socho, kaunsa asset control de sakta hai। Follow karo।","b_roll":"None — stay on avatar for CTA.","motion_graphics":"FOLLOW FOR MORE"}
+]`;
+
+const RESEARCH_TEMPLATE = `Do in-depth, fact-checked research on [COMPANY/FOUNDER NAME] for a business storytelling YouTube Short script. Structure your answer in these exact sections:
+
+1. TIMELINE — Key dates and events in chronological order.
+2. THE HOOK — One surprising, counter-intuitive fact most people don't know.
+3. THE HIDDEN STRATEGY/STORY — The actual decision/strategy and why.
+4. VERIFIED NUMBERS — Key facts with sources. Flag anything disputed.
+5. QUOTES — Direct quotes from founders/executives (with source).
+6. ACTIONABLE LESSON — One clear, practical takeaway.
+7. SOURCES — All sources with links.
+
+Also suggest a punchy 1-line Hinglish hook/title for a YouTube Short based on this story.
+
+Keep the tone factual and neutral, avoid unverified rumors — if disputed, say so explicitly.`;
+
+const JSON_TEMPLATE = `{
+  "part": "[1-5]",
+  "duration": "[7-15 seconds]",
+  "generation_type": "[Part 1: FRESH generation — attach Ingredients avatar reference image. Part 2+: EXTEND from previous part.]",
+  "scene_objective": "[Narrative goal]",
+  "visual_description": "Use the SAME locked AI avatar (saved Agent). Cinematic warm lighting. The uploaded avatar is the ONLY human visible.",
+  "character_action": "[Gestures/expression]",
+  "dialogue": "[Hindi script line(s) for this part]",
+  "emotion": "[Tone]",
+  "camera": "[Shot type + movement]",
+  "lighting": "Premium cinematic studio lighting.",
+  "b_roll": "[Real stock visuals. No humans.]",
+  "motion_graphics": "[Key phrase/number to overlay in CapCut]",
+  "background_music": "[Mood]",
+  "sound_effects": "[SFX]",
+  "transition": "[Cut / fade / Extend / End card]",
+  "negative_prompt": "No women. No other men. No extra people. No extra presenter. No face except the uploaded avatar. No distorted hands."
+}`;
+
+let topicsCache = {};
+let seeded = false;
+
+onSnapshot(topicsCol, (snapshot) => {
+  snapshot.forEach(d => { topicsCache[d.id] = d.data(); });
+  document.getElementById('syncDot').classList.add('live');
+  document.getElementById('syncText').textContent = 'Synced live — updates appear on every device';
+  if (!seeded) { seedIfNeeded(); seeded = true; }
+  render();
+}, (err) => {
+  document.getElementById('syncText').textContent = 'Connection issue: ' + err.message;
+});
+
+async function seedIfNeeded() {
+  if (!topicsCache['11']) {
+    await setDoc(doc(db, 'topics', '11'), {status: 'In Production', script: MCDONALDS_SCRIPT, json: MCDONALDS_JSON});
+  }
+}
+
+function getData(tid) {
+  return topicsCache[String(tid)] || {status: 'Not Started', script: '', json: ''};
+}
+
+async function updateField(tid, field, value, btn) {
+  await setDoc(doc(db, 'topics', String(tid)), {[field]: value}, {merge: true});
+  if (btn) {
+    btn.classList.add('show');
+    setTimeout(() => btn.classList.remove('show'), 1500);
+  }
+}
+
+function statusClass(s) {
+  return 'status-' + s.toLowerCase().replace(/\s/g, '');
+}
+
+function renderStats() {
+  const counts = {'Not Started':0,'Script Ready':0,'JSON Ready':0,'In Production':0,'Posted':0};
+  TOPICS.forEach(t => { const d = getData(t.id); counts[d.status] = (counts[d.status]||0)+1; });
+  const el = document.getElementById('stats');
+  el.innerHTML = Object.entries(counts).map(([k,v]) =>
+    `<div class="stat"><b>${v}</b>${k}</div>`).join('');
+}
+
+window.toggleTopic = function(tid) {
+  const body = document.getElementById('body-' + tid);
+  body.classList.toggle('open');
+}
+
+window.updateField = updateField;
+
+window.render = function render() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const catF = document.getElementById('catFilter').value;
+  const statusF = document.getElementById('statusFilter').value;
+  const list = document.getElementById('list');
+  const openIds = Array.from(document.querySelectorAll('.topic-body.open')).map(el => el.id);
+  list.innerHTML = '';
+
+  TOPICS.filter(t => {
+    const d = getData(t.id);
+    if (search && !t.title.toLowerCase().includes(search)) return false;
+    if (catF && t.cat !== catF) return false;
+    if (statusF && d.status !== statusF) return false;
+    return true;
+  }).forEach(t => {
+    const d = getData(t.id);
+    const div = document.createElement('div');
+    div.className = 'topic';
+    div.innerHTML = `
+      <div class="topic-head" onclick="toggleTopic(${t.id})">
+        <span class="topic-num">#${t.id}</span>
+        <span class="topic-title">${t.title}</span>
+        <span class="badge cat">${t.cat}</span>
+        <span class="badge ${statusClass(d.status)}">${d.status}</span>
+      </div>
+      <div class="topic-body" id="body-${t.id}">
+        <div class="field-label">Status</div>
+        <select class="status-select" onchange="updateField(${t.id},'status',this.value)">
+          ${['Not Started','Script Ready','JSON Ready','In Production','Posted'].map(s =>
+            `<option value="${s}" ${d.status===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <div class="field-label">Script <span class="saved-tag">Saved</span></div>
+        <textarea onblur="updateField(${t.id},'script',this.value,this.previousElementSibling)" placeholder="Paste or write the script here...">${d.script||''}</textarea>
+        <div class="field-label">Flow JSON (Scenes) <span class="saved-tag">Saved</span></div>
+        <textarea onblur="updateField(${t.id},'json',this.value,this.previousElementSibling)" placeholder="Paste the JSON scenes here...">${d.json||''}</textarea>
+      </div>
+    `;
+    list.appendChild(div);
+    if (openIds.includes('body-' + t.id)) div.querySelector('.topic-body').classList.add('open');
+  });
+  renderStats();
+}
+
+window.pickRandom = function pickRandom() {
+  const notStarted = TOPICS.filter(t => getData(t.id).status === 'Not Started');
+  const pool = notStarted.length ? notStarted : TOPICS;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById('pickTitle').textContent = '#' + pick.id + ' — ' + pick.title;
+}
+
+window.copyText = function copyText(id) {
+  const el = document.getElementById(id);
+  el.select();
+  document.execCommand('copy');
+}File create kr do yahi par
+
+// init
+document.getElementById('tplResearch').value = RESEARCH_TEMPLATE;
+document.getElementById('tplJson').value = JSON_TEMPLATE;fa
+const catSel = document.getElementById('catFilter');
+CATEGORIES.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c; opt.textContent = c;
+  catSel.appendChild(opt);
+});
+pickRandom();
+render();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
