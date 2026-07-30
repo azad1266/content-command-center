@@ -60,7 +60,7 @@
     background: var(--navy);
     background-image: radial-gradient(circle at 15% 0%, rgba(217,72,15,.25), transparent 55%), radial-gradient(circle at 85% 100%, rgba(124,58,237,.2), transparent 55%);
     color: #fff;
-    padding: 0 28px;
+    padding: 0 20px;
     display: flex; align-items: center; justify-content: space-between;
     height: 62px;
     box-shadow: 0 2px 16px rgba(0,0,0,.2);
@@ -74,12 +74,6 @@
     box-shadow: 0 2px 8px rgba(217,72,15,.5);
   }
   .brand .tag { font-weight: 500; color: rgba(255,255,255,.5); font-size: 12px; margin-left: 6px; }
-  .navlinks { display: flex; gap: 4px; align-items: center; }
-  .navlinks a {
-    text-decoration: none; color: rgba(255,255,255,.75); font-size: 13.5px; font-weight: 500;
-    padding: 8px 14px; border-radius: 7px; transition: all .15s;
-  }
-  .navlinks a:hover { background: rgba(255,255,255,.1); color: #fff; }
   .icon-btn {
     background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); color: #fff;
     width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px;
@@ -90,6 +84,25 @@
   .nav-sync { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,.65); }
   .dot { width: 7px; height: 7px; border-radius: 50%; background: #6b6f85; flex-shrink: 0; }
   .dot.live { background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,.25); }
+
+  .layout { display: flex; align-items: flex-start; }
+  .sidebar {
+    width: 210px; flex-shrink: 0; background: var(--navy); min-height: calc(100vh - 62px);
+    padding: 18px 10px 40px; position: sticky; top: 62px; align-self: flex-start;
+  }
+  .sidebar-group { margin-bottom: 6px; }
+  .sidebar-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.35); padding: 14px 12px 6px; font-weight: 700; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 8px;
+    color: rgba(255,255,255,.72); font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer;
+  }
+  .sidebar-link:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .sidebar-badge {
+    margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 20px; min-width: 18px; text-align: center;
+  }
+  .main-col { flex: 1; min-width: 0; }
+  @media (max-width: 860px) { .sidebar { display: none; } }
 
   .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
 
@@ -251,6 +264,15 @@
   .idea-card .idea-btn:hover { background: var(--gray-soft); color: var(--text); }
   @media (max-width: 720px) { .idea-grid { grid-template-columns: 1fr; } }
 
+  .trend-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: #fafbfc; }
+  .trend-source {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--blue);
+    margin-top: 8px; text-decoration: none; word-break: break-all;
+  }
+  .trend-source:hover { text-decoration: underline; }
+  .backlog-meter { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .backlog-meter b { color: var(--text); }
+
   .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .controls input, .controls select {
     padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;
@@ -312,7 +334,6 @@
 
   @media (max-width: 720px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
-    .navlinks { display: none; }
   }
 </style>
 </head>
@@ -324,13 +345,6 @@
     Content Command Center
     <span class="tag">Business Storytelling Studio</span>
   </div>
-  <div class="navlinks">
-    <a href="#overview">Overview</a>
-    <a href="#studio">Studio</a>
-    <a href="#ideas">Idea Banks</a>
-    <a href="#templates">Templates</a>
-    <a href="#topics">Topics</a>
-  </div>
   <div class="nav-right">
     <div class="nav-sync"><span class="dot" id="syncDot"></span><span id="syncText">Connecting...</span></div>
     <button class="icon-btn" title="Settings" onclick="toggleSettings()">&#9881;</button>
@@ -341,11 +355,31 @@
   <div class="settings-inner">
     <input type="password" id="geminiKeyInput" placeholder="Paste your free Gemini API key here (from aistudio.google.com/apikey)">
     <button class="btn btn-primary btn-sm" onclick="saveGeminiKey()">Save key</button>
-    <span class="settings-note">Key sirf is browser ke localStorage me save hota hai — GitHub par kabhi upload nahi hota. Isse "Generate with AI" buttons kaam karte hain.</span>
+    <span class="settings-note">Key sirf is browser ke localStorage me save hota hai — GitHub par kabhi upload nahi hota. Isse "Generate with AI" buttons aur Trending Topics kaam karte hain.</span>
   </div>
 </div>
 
-<div class="wrap">
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-group">
+      <div class="sidebar-label">Workflow</div>
+      <a class="sidebar-link" href="#overview">Overview</a>
+      <a class="sidebar-link" href="#studio">Production Studio</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Content Idea</div>
+      <a class="sidebar-link" href="#backlog">Topic Backlog<span class="sidebar-badge" id="backlogCountBadge">100</span></a>
+      <a class="sidebar-link" href="#trending">Trending Topics</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Library</div>
+      <a class="sidebar-link" href="#ideas">Idea Banks</a>
+      <a class="sidebar-link" href="#templates">Templates</a>
+    </div>
+  </aside>
+
+  <div class="main-col">
+  <div class="wrap">
 
   <div class="page-head" id="overview">
     <div>
@@ -420,8 +454,18 @@
     </details>
   </div>
 
-  <div class="card" id="topics">
-    <div class="card-head"><div class="card-icon i-teal"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg></div><div class="card-text"><h2>100 Topics — Content Library</h2><div class="card-sub" style="margin-bottom:0">Browse and check status here. Click "Open in Studio" inside a topic to write there.</div></div></div>
+  <div class="card" id="trending">
+    <div class="card-head"><div class="card-icon i-accent"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17a2.5 2.5 0 0 0 2.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 1 1-15 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5z"/></svg></div><div class="card-text"><h2>Trending Topics (with proof)</h2><div class="card-sub" style="margin-bottom:0">Gemini + live Google Search se abhi ke trending AI/business topics dhundta hai, har topic ke saath asli source link. Kuch fake/generic nahi — sirf source ke saath.</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-ai" id="trendingRefreshBtn" onclick="refreshTrending(this)"><svg class="ic" viewBox="0 0 24 24"><path d="M21 2v6h-6M3 22v-6h6M3.5 9a8.5 8.5 0 0 1 14.9-4.9M20.5 15a8.5 8.5 0 0 1-14.9 4.9"/></svg>Refresh Trending Topics</button>
+      <span style="font-size:12px;color:var(--muted)" id="trendingLastUpdated">Kabhi refresh nahi hua</span>
+    </div>
+    <div id="trendingList" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+
+  <div class="card" id="backlog">
+    <div class="card-head"><div class="card-icon i-teal"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg></div><div class="card-text"><h2>Topic Backlog (auto-refills to 100)</h2><div class="card-sub" style="margin-bottom:0">Jab ek topic "Posted" hota hai, dashboard khud research karke ek naya topic yahan add kar deta hai — pool hamesha ~100 active ideas pe rehta hai.</div></div></div>
+    <div class="backlog-meter" id="backlogMeter"></div>
     <div class="controls">
       <input type="text" id="search" placeholder="Search topic..." oninput="render()">
       <select id="catFilter" onchange="render()"><option value="">All Categories</option></select>
@@ -439,6 +483,8 @@
   </div>
 
   <footer class="foot">Built for Aditya &middot; 100% free stack &middot; GitHub Pages + Firestore + Gemini</footer>
+  </div>
+  </div>
 </div>
 
 <script type="module">
@@ -460,6 +506,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const topicsCol = collection(db, "topics");
+const topicsListRef = doc(db, "meta", "topicsList");
+const trendingRef = doc(db, "meta", "trending");
 
 const CATEGORIES = ["Business Collapse/Failure","Hidden Business Models","Founder Psychology & Decisions","Marketing Psychology Tricks","Company Rivalries & Wars","Pricing Psychology","Indian Business Stories","Global Tech Secrets","Scams & Frauds","Underdog/Comeback Stories"];
 
@@ -576,11 +624,14 @@ const RAW_TOPICS = [
 "Byju's Chhote Tuition Class Se $22 Billion Tak Kaise Pahuncha?"]]
 ];
 
-let TOPICS = [];
-let id = 1;
-RAW_TOPICS.forEach(([cat, titles]) => {
-  titles.forEach(title => { TOPICS.push({id: id++, cat, title}); });
-});
+let SEED_TOPICS = [];
+{
+  let sid = 1;
+  RAW_TOPICS.forEach(([cat, titles]) => {
+    titles.forEach(title => { SEED_TOPICS.push({id: sid++, cat, title, source: 'seed'}); });
+  });
+}
+let TOPICS = SEED_TOPICS.slice();
 
 const STAGES = [
   {key: 'doneResearch', label: 'Research'},
@@ -702,7 +753,8 @@ const ICONS = {
   copy: '<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
   carousel: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
   hash: '<svg class="ic" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg>',
-  send: '<svg class="ic" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>'
+  send: '<svg class="ic" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
+  link: '<svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg>'
 };
 
 const TABS = [
@@ -718,6 +770,10 @@ let topicsCache = {};
 let seeded = false;
 let currentPick = null;
 let activeTab = 'research';
+let topicsListLoaded = false;
+let topicsListSeeding = false;
+let autoReplenishing = false;
+let lastTrendingItems = [];
 
 onSnapshot(topicsCol, (snapshot) => {
   snapshot.forEach(d => { topicsCache[d.id] = d.data(); });
@@ -725,9 +781,29 @@ onSnapshot(topicsCol, (snapshot) => {
   document.getElementById('syncText').textContent = 'Synced live';
   if (!seeded) { seedIfNeeded(); seeded = true; if (!currentPick) pickRandom(); }
   render();
+  maybeAutoReplenish();
 }, (err) => {
   document.getElementById('syncText').textContent = 'Connection issue: ' + err.message;
 });
+
+onSnapshot(topicsListRef, (snap) => {
+  if (snap.exists() && Array.isArray(snap.data().topics) && snap.data().topics.length) {
+    TOPICS = snap.data().topics;
+    topicsListLoaded = true;
+    populateStudioSelect();
+    render();
+    maybeAutoReplenish();
+  } else if (!topicsListSeeding) {
+    topicsListSeeding = true;
+    setDoc(topicsListRef, {topics: SEED_TOPICS}).finally(() => { topicsListSeeding = false; });
+  }
+}, () => {});
+
+onSnapshot(trendingRef, (snap) => {
+  const data = snap.exists() ? snap.data() : null;
+  lastTrendingItems = (data && data.items) || [];
+  renderTrending(data);
+}, () => {});
 
 async function seedIfNeeded() {
   if (!topicsCache['11']) {
@@ -808,6 +884,22 @@ async function callGemini(prompt) {
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
+async function callGeminiGrounded(prompt) {
+  const key = localStorage.getItem('geminiKey');
+  if (!key) { alert('Pehle Settings (gear icon, top-right) me apna free Gemini API key add karo.'); return null; }
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({contents: [{parts: [{text: prompt}]}], tools: [{google_search: {}}]})
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error('Gemini search error: ' + t.slice(0,300)); }
+  const data = await res.json();
+  const text = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+  const chunks = data.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+  const groundingUrls = chunks.map(c => c.web && c.web.uri).filter(Boolean);
+  return {text, groundingUrls};
+}
+
 async function runGenerate(btn, fn) {
   const orig = btn.textContent; btn.textContent = 'Generating...'; btn.disabled = true;
   try { await fn(); } catch (e) { alert(e.message); }
@@ -866,6 +958,108 @@ window.generateCarousel = function(tid, btn) {
   });
 }
 
+async function addTopicToList(cat, title, source) {
+  const maxId = TOPICS.reduce((m,t) => Math.max(m, t.id), 0);
+  const newTopic = {id: maxId + 1, cat, title, source: source || 'manual', addedAt: Date.now()};
+  const updated = TOPICS.concat([newTopic]);
+  TOPICS = updated;
+  await setDoc(topicsListRef, {topics: updated});
+  populateStudioSelect();
+  render();
+  return newTopic;
+}
+
+async function maybeAutoReplenish() {
+  if (autoReplenishing || !topicsListLoaded) return;
+  const key = localStorage.getItem('geminiKey');
+  if (!key) return;
+  const activeCount = TOPICS.filter(t => !getData(t.id).donePosted).length;
+  if (activeCount >= 100) return;
+  autoReplenishing = true;
+  try {
+    const existingTitles = TOPICS.map(t => t.title);
+    const prompt = `You are a topic researcher for a Hindi business-storytelling YouTube Shorts channel. The channel's 10 categories are: ${CATEGORIES.join(', ')}.\n\nPropose ONE brand-new video topic idea that is NOT a duplicate or close variant of any topic in this existing list:\n${existingTitles.map(t => '- ' + t).join('\n')}\n\nThe title must be a punchy Hindi/Hinglish clickbait-style title matching the tone of these examples: "Kodak ne Digital Camera Banaya Tha, Phir Bhi Kyun Dooba?", "McDonald's Asli Business Burger Nahi, Real Estate Hai".\n\nReturn ONLY in this exact format, nothing else:\nCATEGORY: <one of the 10 categories exactly as listed>\nTITLE: <the new Hindi/Hinglish title>`;
+    const out = await callGemini(prompt);
+    if (out) {
+      const catMatch = out.match(/CATEGORY:\s*(.+)/i);
+      const titleMatch = out.match(/TITLE:\s*(.+)/i);
+      if (catMatch && titleMatch) {
+        const catRaw = catMatch[1].trim();
+        const cat = CATEGORIES.find(c => c.toLowerCase() === catRaw.toLowerCase()) || CATEGORIES[0];
+        const title = titleMatch[1].trim();
+        const isDup = TOPICS.some(t => t.title.toLowerCase() === title.toLowerCase());
+        if (!isDup && title) { await addTopicToList(cat, title, 'auto'); }
+      }
+    }
+  } catch (e) { /* silent background failure — don't interrupt the user */ }
+  autoReplenishing = false;
+}
+
+function parseTrendingBlocks(text) {
+  const blocks = text.split(/\n(?=TITLE:)/i);
+  const items = [];
+  blocks.forEach(b => {
+    const title = (b.match(/TITLE:\s*(.+)/i) || [])[1];
+    const cat = (b.match(/CATEGORY:\s*(.+)/i) || [])[1];
+    const why = (b.match(/WHY_TRENDING:\s*(.+)/i) || [])[1];
+    const source = (b.match(/SOURCE:\s*(.+)/i) || [])[1];
+    if (title && source) {
+      items.push({
+        title: title.trim(),
+        cat: CATEGORIES.find(c => c.toLowerCase() === (cat || '').trim().toLowerCase()) || CATEGORIES[0],
+        why: (why || '').trim(),
+        source: source.trim()
+      });
+    }
+  });
+  return items;
+}
+
+window.refreshTrending = function(btn) {
+  runGenerate(btn, async () => {
+    const prompt = `Search the web for what is genuinely trending RIGHT NOW (this week) in: AI tools & AI agents, business news, startup stories, and tech industry — things that would make a great Hindi YouTube Shorts business-storytelling video.\n\nFind the 8 best real, currently-trending topics. For EACH one, respond in EXACTLY this block format (repeat 8 times, one block per topic):\n\nTITLE: <a punchy Hindi/Hinglish video title idea>\nCATEGORY: <closest fit from: ${CATEGORIES.join(', ')}>\nWHY_TRENDING: <one line on why it's hot right now>\nSOURCE: <the real URL where you found this>\n\nOnly include topics you can back with a real, current, working source URL — do not invent or guess a trending topic without one.`;
+    const result = await callGeminiGrounded(prompt);
+    if (!result || !result.text) return;
+    const items = parseTrendingBlocks(result.text);
+    if (!items.length) { alert('Trending topics parse nahi ho paye — dobara try karo ya kuch der baad try karo.'); return; }
+    await setDoc(trendingRef, {items, lastRefreshed: Date.now()});
+  });
+}
+
+window.addTrendingToBacklog = async function(idx) {
+  const it = lastTrendingItems[idx];
+  if (!it) return;
+  const newTopic = await addTopicToList(it.cat, it.title, 'trending');
+  alert('Backlog me add ho gaya: #' + newTopic.id);
+}
+
+function renderTrending(data) {
+  const el = document.getElementById('trendingList');
+  const stamp = document.getElementById('trendingLastUpdated');
+  if (!el || !stamp) return;
+  if (!data || !data.items || !data.items.length) {
+    el.innerHTML = '<div style="font-size:12.5px;color:var(--muted)">Abhi tak koi trending data nahi hai — upar "Refresh Trending Topics" dabao (Gemini key chahiye Settings me).</div>';
+    stamp.textContent = 'Kabhi refresh nahi hua';
+    return;
+  }
+  stamp.textContent = 'Last updated: ' + new Date(data.lastRefreshed).toLocaleString('en-IN');
+  el.innerHTML = data.items.map((it, idx) => {
+    const catIdx = CATEGORIES.indexOf(it.cat);
+    return `
+    <div class="trend-card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:4px">${it.title}</div>
+          <span class="badge cat-${catIdx}">${it.cat}</span>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">${it.why || ''}</div>
+          <a href="${it.source}" target="_blank" rel="noopener" class="trend-source">${ICONS.link}Source</a>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addTrendingToBacklog(${idx})">+ Add to Backlog</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderStats() {
   const counts = {'Not Started':0,'Researching':0,'Script Ready':0,'JSON Ready':0,'In Production':0,'Posted':0};
   TOPICS.forEach(t => { const s = stageOf(getData(t.id)); counts[s] = (counts[s]||0)+1; });
@@ -906,6 +1100,7 @@ window.openInStudio = function(tid) {
 
 function populateStudioSelect() {
   const sel = document.getElementById('studioTopicSelect');
+  const prevValue = sel.value;
   sel.innerHTML = '';
   CATEGORIES.forEach(cat => {
     const grp = document.createElement('optgroup');
@@ -918,6 +1113,7 @@ function populateStudioSelect() {
     });
     sel.appendChild(grp);
   });
+  if (prevValue && TOPICS.some(t => String(t.id) === prevValue)) sel.value = prevValue;
 }
 
 window.setStudioTab = function(key) { activeTab = key; renderStudio(); }
@@ -958,7 +1154,7 @@ function panelHtml(tab, t, d) {
   `;
   if (tab === 'publish') return `
     <div class="studio-panel-title">${ICONS.send} Step 6 — Publish (Posted Links)</div>
-    <div class="studio-panel-desc">Jab video/carousel post ho jaye, uske links yahan save kar do — dashboard khud "Posted" mark kar dega jab teeno bhar doge.</div>
+    <div class="studio-panel-desc">Jab video/carousel post ho jaye, uske links yahan save kar do — dashboard khud "Posted" mark kar dega jab teeno bhar doge, aur backlog me khud-ba-khud ek naya topic add ho jayega.</div>
     <div class="link-row">
       <div class="link-item"><label>YouTube Shorts</label><input value="${d.shortsUrl||''}" placeholder="https://youtube.com/shorts/..." onblur="updateField(${t.id},'shortsUrl',this.value)"></div>
       <div class="link-item"><label>Instagram Reel</label><input value="${d.reelUrl||''}" placeholder="https://instagram.com/reel/..." onblur="updateField(${t.id},'reelUrl',this.value)"></div>
@@ -972,8 +1168,8 @@ window.renderStudio = function() {
   const sel = document.getElementById('studioTopicSelect');
   if (!sel.value && currentPick) sel.value = currentPick.id;
   const tid = Number(sel.value || (currentPick ? currentPick.id : TOPICS[0].id));
-  const t = TOPICS.find(x => x.id === tid);
-  const d = getData(tid);
+  const t = TOPICS.find(x => x.id === tid) || TOPICS[0];
+  const d = getData(t.id);
 
   document.getElementById('studioStageRow').innerHTML = STAGES.map(st => `
     <div class="stage-chip ${d[st.key] ? 'done' : ''}" onclick="toggleStage(${t.id},'${st.key}')">
@@ -1031,6 +1227,14 @@ window.render = function render() {
     list.appendChild(div);
     if (openIds.includes('body-' + t.id)) div.querySelector('.topic-body').classList.add('open');
   });
+
+  const activeCount = TOPICS.filter(t => !getData(t.id).donePosted).length;
+  const postedCount = TOPICS.length - activeCount;
+  const meter = document.getElementById('backlogMeter');
+  if (meter) meter.innerHTML = `<b>${activeCount}</b> active &nbsp;&middot;&nbsp; <b>${postedCount}</b> posted &nbsp;&middot;&nbsp; <b>${TOPICS.length}</b> total in pool`;
+  const badge = document.getElementById('backlogCountBadge');
+  if (badge) badge.textContent = activeCount;
+
   renderStats();
   renderStudio();
 }
@@ -1067,6 +1271,7 @@ populateStudioSelect();
 renderIdeas();
 pickRandom();
 render();
+renderTrending(null);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
