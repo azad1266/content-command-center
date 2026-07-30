@@ -141,9 +141,29 @@
   .card-icon.i-pink { background: var(--pink-soft); color: var(--pink); }
   .card-icon.i-blue { background: var(--blue-soft); color: var(--blue); }
   .card-icon.i-accent { background: var(--accent-soft); color: var(--accent); }
+  .card-icon.i-green { background: var(--green-soft); color: var(--green); }
   .card h2 { font-size: 15.5px; margin: 0 0 4px; font-weight: 700; }
   .card .card-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
   .card .card-text { flex: 1; }
+
+  .studio-select {
+    width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+    font-size: 13.5px; font-weight: 600; background: #fafbfc; color: var(--text); font-family: inherit; margin-bottom: 18px;
+  }
+  .studio-step { display: flex; gap: 14px; margin-bottom: 20px; }
+  .studio-step-num {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .studio-step-body { flex: 1; min-width: 0; }
+  .studio-step-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+  .studio-step-desc { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; line-height: 1.55; }
+  .studio-step textarea {
+    width: 100%; min-height: 110px; font-size: 12.5px; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; font-family: ui-monospace, "SF Mono", Menlo, monospace; resize: vertical;
+    background: #fff; color: var(--text); margin-top: 10px;
+  }
+  .studio-link { color: var(--indigo); font-weight: 600; }
 
   .workflow { display: flex; align-items: flex-start; gap: 0; margin-top: 4px; overflow-x: auto; padding-bottom: 4px; }
   .wf-step { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 108px; position: relative; }
@@ -220,6 +240,11 @@
   }
   .idea-card .idea-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
   .idea-card .idea-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+  .idea-card .idea-example {
+    font-size: 11.5px; color: var(--text); background: #fff; border: 1px dashed var(--border);
+    border-radius: 6px; padding: 7px 9px; line-height: 1.5;
+  }
+  .idea-card .idea-example b { color: var(--accent); font-weight: 700; }
   .idea-card .idea-btn {
     align-self: flex-start; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px;
     padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600;
@@ -311,7 +336,7 @@
   </div>
   <div class="navlinks">
     <a href="#overview">Overview</a>
-    <a href="#pipeline">Pipeline</a>
+    <a href="#studio">Script &amp; Carousel Studio</a>
     <a href="#ideas">Idea Banks</a>
     <a href="#templates">Templates</a>
     <a href="#topics">Topics</a>
@@ -348,8 +373,14 @@
     <div class="pick-title" id="pickTitle">&mdash;</div>
     <div class="pick-actions">
       <button class="btn btn-primary" onclick="pickRandom()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 2v6h-6M3 22v-6h6M3.5 9a8.5 8.5 0 0 1 14.9-4.9M20.5 15a8.5 8.5 0 0 1-14.9 4.9"/></svg>Suggest New Topic</button>
-      <button class="btn btn-ghost" id="pickResearchBtn" onclick="copyPickResearch()"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy Research Prompt</button>
+      <button class="btn btn-ghost" onclick="openInStudio(currentPick.id)"><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Write Script + Carousel for This</button>
     </div>
+  </div>
+
+  <div class="card" id="studio">
+    <div class="card-head"><div class="card-icon i-green"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="card-text"><h2>Script &amp; Carousel Studio</h2><div class="card-sub" style="margin-bottom:0">Yahi par sab kuchh banta hai. Topic chuno neeche, phir 4 steps follow karo — research paste karo, AI se Script aur Carousel generate karo.</div></div></div>
+    <select class="studio-select" id="studioTopicSelect" onchange="renderStudio()"></select>
+    <div id="studioBody"></div>
   </div>
 
   <div class="card" id="pipeline">
@@ -398,7 +429,7 @@
   </div>
 
   <div class="card" id="topics">
-    <div class="card-head"><div class="card-icon i-teal"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg></div><div class="card-text"><h2>100 Topics — Content Library</h2><div class="card-sub" style="margin-bottom:0">Click a topic to open its full production pipeline.</div></div></div>
+    <div class="card-head"><div class="card-icon i-teal"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg></div><div class="card-text"><h2>100 Topics — Content Library</h2><div class="card-sub" style="margin-bottom:0">Browse and check status here. Click "Open in Studio" inside a topic to write there.</div></div></div>
     <div class="controls">
       <input type="text" id="search" placeholder="Search topic..." oninput="render()">
       <select id="catFilter" onchange="render()"><option value="">All Categories</option></select>
@@ -569,21 +600,21 @@ const STAGES = [
 ];
 
 const REELS_IDEAS = [
-  {title: 'Raw single-take', desc: '2026 me over-polished content se zyada raw, ek-take, seedha camera pe baat karna chal raha hai. Script ke Hook line ko ekdum casual tone me bolo.'},
-  {title: 'Before / After reveal', desc: '"Pehle X tha, phir ye ek decision liya, ab Y hai" — result pehle dikhao, phir kahani reveal karo.'},
-  {title: 'Slideshow narrative', desc: 'Screenshots/quotes/numbers ki sequence jo khud ek chhoti kahani sunaye — single clip se zyada retain karta hai.'},
-  {title: 'Trending audio + twist', desc: 'Trending sound lo, seedha copy mat karo — apni business story pe adapt karke apna angle do.'},
-  {title: 'Searchable hook + caption', desc: 'Pehle 1 second me exact keyword bolo jo log search karte hain — caption me bhi wahi keyword daalo.'},
-  {title: 'Behind-the-scenes', desc: 'Research/script/Flow video banane ka process dikhao — process content khud engaging hota hai.'}
+  {title: 'Raw single-take', desc: '2026 me over-polished content se zyada raw, ek-take, seedha camera pe baat karna chal raha hai.', ex: '"Kodak ne camera invent kiya... phir bhi dooba. 2 minute me pura sach batata hoon." — ek hi shot, bina cuts.'},
+  {title: 'Before / After reveal', desc: '"Pehle X tha, phir ek decision liya, ab Y hai" — result pehle dikhao, phir kahani reveal karo.', ex: '"1999: Kodak No.1 tha. 2012: Bankrupt." — result se shuru, phir wajah.'},
+  {title: 'Slideshow narrative', desc: 'Screenshots/quotes/numbers ki sequence jo khud ek chhoti kahani sunaye.', ex: 'Timeline ke 4-5 numbers/screenshots dikhao jaise story khud bol rahi ho.'},
+  {title: 'Trending audio + twist', desc: 'Trending sound lo, seedha copy mat karo — apni business story pe adapt karo.', ex: 'Trending "POV" sound + "POV: tum McDonald\\'s ke landlord ho, burger seller nahi."'},
+  {title: 'Searchable hook + caption', desc: 'Pehle 1 second me exact keyword bolo jo log search karte hain.', ex: 'Hook: "McDonald\\'s asli business kya hai?" — caption me bhi yahi.'},
+  {title: 'Behind-the-scenes', desc: 'Research/script/Flow video banane ka process dikhao.', ex: '15 sec me: Perplexity research se Google Flow video tak ka process.'}
 ];
 
 const CAROUSEL_IDEAS = [
-  {title: 'Business breakdown (Hormozi-style)', desc: 'Slide 1: ek strong claim/result. Slides 2-9: step-by-step reasoning, ek idea per slide. Last slide: lesson + follow CTA.'},
-  {title: 'AIDA 10-slide arc', desc: 'Attention (hook) → Interest (context) → Desire (kyun matter karta hai) → Action (CTA) — poore carousel me spread karo.'},
-  {title: 'Roadmap breakdown', desc: 'Complex topic ko simple numbered steps me todo, apna take bhi mix karo.'},
-  {title: 'Quote carousel', desc: 'Story ke 5-6 powerful quotes, ek per slide, bold high-contrast typography.'},
-  {title: 'Listicle', desc: '"5 companies jinhone ye kiya" style — ek company/example per slide.'},
-  {title: 'Step-by-step tutorial', desc: 'Story ke lesson se ek actionable how-to nikaalo, slides me steps todo.'}
+  {title: 'Business breakdown (Hormozi-style)', desc: 'Slide 1: ek strong claim/result. Slides 2-9: step-by-step reasoning. Last slide: lesson + CTA.', ex: 'Slide 1: "McDonald\\'s $27B kamata hai — burger se nahi." Slides 2-9: kaise. Slide 10: lesson.'},
+  {title: 'AIDA 10-slide arc', desc: 'Attention → Interest → Desire → Action, poore carousel me spread karo.', ex: 'Slide 1 hook, slide 4-7 "kyun matter karta hai", last slide CTA.'},
+  {title: 'Roadmap breakdown', desc: 'Complex topic ko simple numbered steps me todo.', ex: '"3 steps jo McDonald\\'s ne liye landlord banne ke liye" — numbered slides.'},
+  {title: 'Quote carousel', desc: 'Story ke 5-6 powerful quotes, ek per slide, bold typography.', ex: '"We are in the real estate business" — Harry Sonneborn — bold slide.'},
+  {title: 'Listicle', desc: '"5 companies jinhone ye kiya" style — ek company per slide.', ex: '"5 brands jo product nahi, kuch aur bech rahe hain" — ek per slide.'},
+  {title: 'Step-by-step tutorial', desc: 'Story ke lesson se ek actionable how-to nikaalo.', ex: '"Apna business asset kaise dhundo" — 5 actionable steps.'}
 ];
 
 const MCDONALDS_SCRIPT = `SHORT 1 — "McDonald's Asli Business Burger Nahi, Real Estate Hai" (5-part merged version)
@@ -652,7 +683,8 @@ const ICONS = {
   edited: '<svg class="ic" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>',
   posted: '<svg class="ic" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
   wand: '<svg class="ic" viewBox="0 0 24 24"><path d="m15 4 1.5 1.5M4 20l9-9M18 12l1.5 1.5M9 4 4 9M15.5 8.5 20 4"/></svg>',
-  copy: '<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'
+  copy: '<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  carousel: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'
 };
 
 let topicsCache = {};
@@ -723,12 +755,7 @@ function copyPlain(text) {
 window.copyPickResearch = function() {
   if (!currentPick) return;
   copyPlain(buildResearchPrompt(currentPick.title));
-  const btn = document.getElementById('pickResearchBtn');
-  const orig = btn.innerHTML;
-  btn.textContent = 'Copied!';
-  setTimeout(() => { btn.innerHTML = orig; }, 1500);
 }
-
 window.copyTopicResearch = function(tid, title) { copyPlain(buildResearchPrompt(title)); }
 window.copyIdea = function(title, desc) { copyPlain(title + ' — ' + desc); }
 
@@ -742,7 +769,7 @@ if (savedKey) document.getElementById('geminiKeyInput').value = savedKey;
 
 async function callGemini(prompt) {
   const key = localStorage.getItem('geminiKey');
-  if (!key) { alert('Pehle Settings (gear icon) me apna free Gemini API key add karo.'); return null; }
+  if (!key) { alert('Pehle Settings (gear icon, top-right) me apna free Gemini API key add karo.'); return null; }
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -756,14 +783,12 @@ async function callGemini(prompt) {
 window.generateScript = async function(tid, title, btn) {
   const d = getData(tid);
   const research = d.research || '';
-  if (!research.trim()) { alert('Pehle Research Notes me kuchh paste karo.'); return; }
+  if (!research.trim()) { alert('Pehle Step 1 me Research Notes bharo.'); return; }
   const orig = btn.textContent; btn.textContent = 'Generating...'; btn.disabled = true;
   try {
     const prompt = `You are a scriptwriter for a Hindi business-storytelling YouTube Shorts channel. Using the research below, write a punchy 5-part spoken script in Hindi/Hinglish (natural conversational tone, not textbook Hindi), formatted exactly like this example:\n\n${MCDONALDS_SCRIPT}\n\nNow write a new script in the same format for:\nTopic: ${title}\nResearch:\n${research}`;
     const out = await callGemini(prompt);
     if (out) {
-      const ta = document.querySelector('#body-' + tid + ' [data-field="script"]');
-      ta.value = out;
       await updateField(tid, 'script', out);
       await setDoc(doc(db, 'topics', String(tid)), {doneScript: true}, {merge: true});
     }
@@ -775,16 +800,12 @@ window.generateCarousel = async function(tid, title, btn) {
   const d = getData(tid);
   const research = d.research || '';
   const script = d.script || '';
-  if (!research.trim() && !script.trim()) { alert('Pehle Research ya Script me kuchh bharo.'); return; }
+  if (!research.trim() && !script.trim()) { alert('Pehle Step 1 (Research) ya Step 2 (Script) me kuchh bharo.'); return; }
   const orig = btn.textContent; btn.textContent = 'Generating...'; btn.disabled = true;
   try {
     const prompt = `Create an Instagram carousel for this business story, Hormozi-style: slide 1 is one strong claim or result as the hook, slides 2 through 9 walk through step-by-step reasoning (one idea per slide, short punchy Hindi/Hinglish text), final slide is the lesson plus a follow CTA. 8 to 10 slides total. For EACH slide also give a one-line background/visual image-generation prompt (dark minimal background, bold typography, no photos of people, professional editorial style, suitable for pasting into ChatGPT/Gemini image generation). Format as:\n\nSLIDE 1:\nText: ...\nImage prompt: ...\n\nSLIDE 2:\n...\n\nTopic: ${title}\nResearch:\n${research}\nScript:\n${script}`;
     const out = await callGemini(prompt);
-    if (out) {
-      const ta = document.querySelector('#body-' + tid + ' [data-field="carousel"]');
-      ta.value = out;
-      await updateField(tid, 'carousel', out);
-    }
+    if (out) { await updateField(tid, 'carousel', out); }
   } catch (e) { alert(e.message); }
   btn.textContent = orig; btn.disabled = false;
 }
@@ -803,18 +824,105 @@ function renderIdeas() {
     <div class="idea-card" style="border-left-color:var(--${colors[idx%colors.length]})">
       <div class="idea-title">${ICONS.video}${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
-      <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.desc)})">Copy angle</button>
+      <div class="idea-example"><b>Example:</b> ${i.ex}</div>
+      <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.ex)})">Copy example</button>
     </div>`).join('');
   document.getElementById('carouselIdeas').innerHTML = CAROUSEL_IDEAS.map((i,idx) => `
     <div class="idea-card" style="border-left-color:var(--${colors[idx%colors.length]})">
-      <div class="idea-title">${ICONS.json}${i.title}</div>
+      <div class="idea-title">${ICONS.carousel}${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
-      <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.desc)})">Copy angle</button>
+      <div class="idea-example"><b>Example:</b> ${i.ex}</div>
+      <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.ex)})">Copy example</button>
     </div>`).join('');
 }
 
 window.toggleTopic = function(tid) {
   document.getElementById('body-' + tid).classList.toggle('open');
+}
+
+window.openInStudio = function(tid) {
+  const sel = document.getElementById('studioTopicSelect');
+  sel.value = tid;
+  renderStudio();
+  document.getElementById('studio').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function populateStudioSelect() {
+  const sel = document.getElementById('studioTopicSelect');
+  sel.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const grp = document.createElement('optgroup');
+    grp.label = cat;
+    TOPICS.filter(t => t.cat === cat).forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = '#' + t.id + ' — ' + t.title;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+}
+
+window.renderStudio = function() {
+  const sel = document.getElementById('studioTopicSelect');
+  if (!sel.value && currentPick) sel.value = currentPick.id;
+  const tid = Number(sel.value || (currentPick ? currentPick.id : TOPICS[0].id));
+  const t = TOPICS.find(x => x.id === tid);
+  const d = getData(tid);
+  document.getElementById('studioBody').innerHTML = `
+    <div class="stage-row">
+      ${STAGES.map(st => `
+        <div class="stage-chip ${d[st.key] ? 'done' : ''}" onclick="toggleStage(${t.id},'${st.key}')">
+          <span class="chk">${d[st.key] ? '✓' : ''}</span>${st.label}
+        </div>`).join('')}
+    </div>
+
+    <div class="studio-step">
+      <div class="studio-step-num">1</div>
+      <div class="studio-step-body">
+        <div class="studio-step-title">${ICONS.research} Research</div>
+        <div class="studio-step-desc">Perplexity.ai kholo, neeche wala prompt paste karo, jo jawab aaye wo yahan paste kar do.</div>
+        <button class="btn btn-outline btn-sm" onclick="copyTopicResearch(${t.id}, ${JSON.stringify(t.title)})">${ICONS.copy}Copy Research Prompt</button>
+        <textarea data-field="research" onblur="updateField(${t.id},'research',this.value)" placeholder="Perplexity ka jawab yahan paste karo...">${d.research||''}</textarea>
+      </div>
+    </div>
+
+    <div class="studio-step">
+      <div class="studio-step-num">2</div>
+      <div class="studio-step-body">
+        <div class="studio-step-title">${ICONS.script} Script</div>
+        <div class="studio-step-desc">Research bharne ke baad neeche button dabao — 5-part Hindi script seedha yahan ban jayega. Chaho to khud bhi likh/edit kar sakte ho.</div>
+        <button class="btn btn-ai" onclick="generateScript(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Script with AI</button>
+        <textarea data-field="script" onblur="updateField(${t.id},'script',this.value)" placeholder="Yahan Generate button dabao, ya khud script likho...">${d.script||''}</textarea>
+      </div>
+    </div>
+
+    <div class="studio-step">
+      <div class="studio-step-num">3</div>
+      <div class="studio-step-body">
+        <div class="studio-step-title">${ICONS.carousel} Carousel + Image Prompts</div>
+        <div class="studio-step-desc">Ek click me 8-10 slide ka Instagram carousel copy + har slide ka image-generation prompt ban jayega (ChatGPT/Gemini me paste karne ke liye).</div>
+        <button class="btn btn-ai" onclick="generateCarousel(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Carousel with AI</button>
+        <textarea data-field="carousel" onblur="updateField(${t.id},'carousel',this.value)" placeholder="Yahan Generate button dabao, ya khud slide copy likho...">${d.carousel||''}</textarea>
+      </div>
+    </div>
+
+    <div class="studio-step">
+      <div class="studio-step-num">4</div>
+      <div class="studio-step-body">
+        <div class="studio-step-title">${ICONS.json} Flow JSON (Video Scenes)</div>
+        <div class="studio-step-desc">Google Flow ke liye scene-by-scene JSON yahan paste karo — template "Reusable Templates" section me hai.</div>
+        <textarea data-field="json" onblur="updateField(${t.id},'json',this.value)" placeholder="Flow scene JSON yahan paste karo...">${d.json||''}</textarea>
+      </div>
+    </div>
+
+    <div class="field-label">Posted Links</div>
+    <div class="link-row">
+      <div class="link-item"><label>YouTube Shorts</label><input value="${d.shortsUrl||''}" placeholder="https://youtube.com/shorts/..." onblur="updateField(${t.id},'shortsUrl',this.value)"></div>
+      <div class="link-item"><label>Instagram Reel</label><input value="${d.reelUrl||''}" placeholder="https://instagram.com/reel/..." onblur="updateField(${t.id},'reelUrl',this.value)"></div>
+      <div class="link-item"><label>Carousel Post</label><input value="${d.carouselUrl||''}" placeholder="https://instagram.com/p/..." onblur="updateField(${t.id},'carouselUrl',this.value)"></div>
+    </div>
+  `;
 }
 
 window.render = function render() {
@@ -848,36 +956,18 @@ window.render = function render() {
         <span class="badge ${stageClass(s)}">${s}</span>
       </div>
       <div class="topic-body" id="body-${t.id}">
+        <button class="btn btn-primary btn-sm" style="margin-bottom:14px" onclick="openInStudio(${t.id})">${ICONS.wand}Open in Script &amp; Carousel Studio</button>
         <div class="stage-row">
           ${STAGES.map(st => `
             <div class="stage-chip ${d[st.key] ? 'done' : ''}" onclick="toggleStage(${t.id},'${st.key}')">
               <span class="chk">${d[st.key] ? '✓' : ''}</span>${st.label}
             </div>`).join('')}
         </div>
-
-        <div class="field-label">Research Notes <span class="saved-tag">Saved</span>
-          <span class="spacer"><button class="copy-btn" style="margin:0;padding:4px 9px;" onclick="copyTopicResearch(${t.id}, ${JSON.stringify(t.title)})">${ICONS.copy}Copy Research Prompt</button></span>
-        </div>
-        <textarea data-field="research" onblur="updateField(${t.id},'research',this.value,this.parentElement.querySelector('.saved-tag'))" placeholder="Paste Perplexity research output here...">${d.research||''}</textarea>
-
-        <div class="field-label">Script <span class="saved-tag">Saved</span>
-          <span class="spacer"><button class="btn btn-ai btn-sm" onclick="generateScript(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate with AI</button></span>
-        </div>
-        <textarea data-field="script" onblur="updateField(${t.id},'script',this.value,this.previousElementSibling.querySelector('.saved-tag'))" placeholder="Paste or write the script here, or click Generate with AI above...">${d.script||''}</textarea>
-
-        <div class="field-label">Flow JSON (Scenes) <span class="saved-tag">Saved</span></div>
-        <textarea data-field="json" onblur="updateField(${t.id},'json',this.value,this.previousElementSibling)" placeholder="Paste the JSON scenes here...">${d.json||''}</textarea>
-
-        <div class="field-label">Carousel (Slides + Image Prompts) <span class="saved-tag">Saved</span>
-          <span class="spacer"><button class="btn btn-ai btn-sm" onclick="generateCarousel(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate with AI</button></span>
-        </div>
-        <textarea data-field="carousel" onblur="updateField(${t.id},'carousel',this.value,this.previousElementSibling.querySelector('.saved-tag'))" placeholder="Click Generate with AI above, or paste carousel slide copy + image prompts here...">${d.carousel||''}</textarea>
-
-        <div class="field-label">Posted Links</div>
-        <div class="link-row">
-          <div class="link-item"><label>YouTube Shorts</label><input value="${d.shortsUrl||''}" placeholder="https://youtube.com/shorts/..." onblur="updateField(${t.id},'shortsUrl',this.value)"></div>
-          <div class="link-item"><label>Instagram Reel</label><input value="${d.reelUrl||''}" placeholder="https://instagram.com/reel/..." onblur="updateField(${t.id},'reelUrl',this.value)"></div>
-          <div class="link-item"><label>Carousel Post</label><input value="${d.carouselUrl||''}" placeholder="https://instagram.com/p/..." onblur="updateField(${t.id},'carouselUrl',this.value)"></div>
+        <div class="field-label">Quick preview — full editing is in the Studio above</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">
+          Research: ${d.research ? d.research.slice(0,80)+'…' : '<em>not added yet</em>'}<br>
+          Script: ${d.script ? d.script.slice(0,80)+'…' : '<em>not added yet</em>'}<br>
+          Carousel: ${d.carousel ? d.carousel.slice(0,80)+'…' : '<em>not added yet</em>'}
         </div>
       </div>
     `;
@@ -885,6 +975,7 @@ window.render = function render() {
     if (openIds.includes('body-' + t.id)) div.querySelector('.topic-body').classList.add('open');
   });
   renderStats();
+  renderStudio();
 }
 
 window.pickRandom = function pickRandom() {
@@ -909,6 +1000,7 @@ CATEGORIES.forEach(c => {
   opt.value = c; opt.textContent = c;
   catSel.appendChild(opt);
 });
+populateStudioSelect();
 renderIdeas();
 pickRandom();
 render();
