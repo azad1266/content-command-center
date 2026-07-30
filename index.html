@@ -402,7 +402,7 @@
   </div>
 
   <div class="card" id="studio">
-    <div class="card-head"><div class="card-icon i-green"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="card-text"><h2>Production Studio</h2><div class="card-sub" style="margin-bottom:0">Topic chuno, phir neeche tabs se ek-ek process alag-alag karo: Research, Script, JSON, Captions, Carousel, Publish.</div></div></div>
+    <div class="card-head"><div class="card-icon i-green"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="card-text"><h2>Production Studio</h2><div class="card-sub" style="margin-bottom:0">Topic chuno, phir neeche tabs se ek-ek process alag-alag karo: Research, Script, JSON, Packaging.</div></div></div>
     <select class="studio-select" id="studioTopicSelect" onchange="renderStudio()"></select>
     <div class="stage-row" id="studioStageRow"></div>
     <div class="studio-tabs" id="studioTabs"></div>
@@ -754,16 +754,15 @@ const ICONS = {
   carousel: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
   hash: '<svg class="ic" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg>',
   send: '<svg class="ic" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
-  link: '<svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg>'
+  link: '<svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg>',
+  package: '<svg class="ic" viewBox="0 0 24 24"><path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>'
 };
 
 const TABS = [
   {key: 'research', label: 'Research', icon: ICONS.research},
   {key: 'script', label: 'Script', icon: ICONS.script},
   {key: 'json', label: 'JSON', icon: ICONS.json},
-  {key: 'captions', label: 'Captions', icon: ICONS.hash},
-  {key: 'carousel', label: 'Carousel', icon: ICONS.carousel},
-  {key: 'publish', label: 'Publish', icon: ICONS.send}
+  {key: 'packaging', label: 'Packaging', icon: ICONS.package}
 ];
 
 let topicsCache = {};
@@ -939,7 +938,7 @@ window.generateCaptions = function(tid, btn) {
     const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.script||'').trim() && !(d.research||'').trim()) { alert('Pehle Research ya Script bharo.'); return; }
-    const prompt = `You are a social media strategist for a Hindi business-storytelling channel. Based on the research/script below, write scroll-stopping, publish-ready copy for three platforms. Use real hook-writing principles — curiosity gaps, numbers, contrast, pattern interrupts — and avoid generic, obviously-AI-sounding phrasing.\n\nFormat exactly like this with clear headers:\n\nYOUTUBE SHORTS:\nTitle: (under 60 characters, curiosity-driven, ideally with a number or surprising claim)\nDescription: (2-3 lines — restate the core hook, then a soft CTA to follow for more business stories)\nTags: 15-20 comma-separated tags, mixing broad tags (business, entrepreneur, startup) with specific ones (the company/person name, the category)\n\nINSTAGRAM:\nCaption: (a strong first line that works even if truncated, 3-5 short lines total, Hindi/Hinglish, ending with a question or CTA that invites comments)\nHashtags: 15-20 hashtags mixing niche-specific (#businessstorytelling #startupstories) and broader-reach tags — no spammy or banned tags\n\nTWITTER / X:\nPost: (under 280 characters, one punchy core fact or hook, written to work as a thread-starter)\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
+    const prompt = `You are a social media strategist for a Hindi business-storytelling channel. Based on the research/script below, write scroll-stopping, publish-ready packaging copy for this video. Use real hook-writing principles — curiosity gaps, numbers, contrast, pattern interrupts — and avoid generic, obviously-AI-sounding phrasing.\n\nFormat exactly like this with clear headers:\n\nYOUTUBE:\nTitle: (under 60 characters, curiosity-driven, ideally with a number or surprising claim)\nDescription: (2-3 lines restating the core hook, then a soft CTA to follow for more business stories, then on a new line "Tags:" followed by 15-20 comma-separated tags mixing broad tags like business/entrepreneur/startup with specific ones — the company/person name, the category)\n\nINSTAGRAM:\nCaption: (a strong first line that works even if truncated, 3-5 short lines total, Hindi/Hinglish, ending with a question or CTA that invites comments, then on a new line 15-20 relevant hashtags mixing niche-specific like #businessstorytelling #startupstories with broader-reach tags — no spammy or banned tags)\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
     const out = await callGemini(prompt);
     if (out) { await updateField(tid, 'captions', out); }
   });
@@ -1140,10 +1139,10 @@ function panelHtml(tab, t, d) {
     <button class="btn btn-ai" onclick="generateJson(${t.id}, this)">${ICONS.wand}Generate Flow JSON with AI</button>
     <textarea onblur="updateField(${t.id},'json',this.value)" placeholder="Script tab pehle bharo, phir Generate dabao, ya khud JSON paste karo...">${d.json||''}</textarea>
   `;
-  if (tab === 'captions') return `
-    <div class="studio-panel-title">${ICONS.hash} Step 4 — Captions, Title &amp; Hashtags</div>
-    <div class="studio-panel-desc">Ek click me YouTube title+description+tags, Instagram caption+hashtags, aur Twitter/X post — teeno ready ban jayenge.</div>
-    <button class="btn btn-ai" onclick="generateCaptions(${t.id}, this)">${ICONS.wand}Generate Captions with AI</button>
+  if (tab === 'packaging') return `
+    <div class="studio-panel-title">${ICONS.package} Step 4 — Packaging</div>
+    <div class="studio-panel-desc">Ek click me YouTube ke liye Title + Description aur Instagram ke liye Caption — dono ready ban jayenge, publish karte waqt seedha copy-paste karne layak.</div>
+    <button class="btn btn-ai" onclick="generateCaptions(${t.id}, this)">${ICONS.wand}Generate Packaging with AI</button>
     <textarea onblur="updateField(${t.id},'captions',this.value)" placeholder="Research ya Script tab pehle bharo, phir Generate dabao...">${d.captions||''}</textarea>
   `;
   if (tab === 'carousel') return `
