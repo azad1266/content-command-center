@@ -1,0 +1,10 @@
+{
+  "name": "content-command-center-ops",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Server-side daily ops (topic backlog replenish + trending refresh) for Content Command Center, run via GitHub Actions.",
+  "dependencies": {
+    "firebase": "^10.12.2"
+  }
+}
