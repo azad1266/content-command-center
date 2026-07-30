@@ -905,29 +905,84 @@ async function runGenerate(btn, fn) {
   btn.textContent = orig; btn.disabled = false;
 }
 
+async function doGenerateScript(tid, researchText, previousScript) {
+  const topic = TOPICS.find(x => x.id === tid);
+  const title = topic ? topic.title : '';
+  const retryClause = previousScript ? `\n\nA previous script for this topic was already generated (shown below). Write a NEW version that is genuinely better — a stronger hook, tighter pacing, sharper word choice, or a different structural angle on the same facts. Do not just lightly reword the same script; make a real creative improvement.\n\nPREVIOUS VERSION (write something noticeably different/better than this):\n${previousScript}` : '';
+  const prompt = `You are one of the world's best short-form video scriptwriters, trained on the hook and retention techniques used by the top-performing YouTube Shorts and Instagram Reels creators globally (fast pattern interrupts, open loops, escalating stakes, satisfying payoffs). You write for a Hindi business-storytelling channel using a single AI avatar talking to camera.\n\nUsing the research below, write a NEW 5-part script for this topic, in EXACTLY the same format and part-count as this reference example:\n\n${MCDONALDS_SCRIPT}\n\nWORLD-CLASS SCRIPT RULES:\n- HOOK (Part 1, first line): open with ONE of these — a shocking number/stat, a contrarian statement that challenges what people assume, or a mystery question that demands an answer. Never start with "aaj hum baat karenge" or any throat-clearing.\n- OPEN LOOP: by the end of Part 1, plant a question in the viewer's mind that only gets answered later — this is what stops the skip/scroll.\n- ESCALATION: Parts 2-3 must each add a new twist or raise the stakes versus what was just said — never just restate the same fact two different ways.\n- MICRO-CLIFFHANGERS: end Parts 1-4 on an incomplete thought or a "but here's the twist" style bridge — never a flat, closed sentence that lets attention drop.\n- PAYOFF: Part 4 must deliver the "aha" — the actual reveal the hook promised — ideally backed by a real quote from the research.\n- LESSON + CTA: Part 5 gives one clear, practical takeaway, then a natural "follow karo" CTA — never salesy or robotic.\n- VOICE: write exactly like explaining this to a smart friend over chai — simple spoken Hindi/Hinglish, mostly 6-12 word sentences, active voice, zero filler words (avoid "basically", "actually", "essentially"), concrete numbers instead of vague amounts.\n- Use ONLY facts present in the research below — never invent numbers, dates, or quotes.\n- Keep total spoken length to roughly 45-60 seconds across the 5 parts, matching the example's pacing.${retryClause}\n\nTopic: ${title}\nCategory: ${topic ? topic.cat : ''}\nResearch:\n${researchText}`;
+  const out = await callGemini(prompt);
+  if (out) {
+    await updateField(tid, 'script', out);
+    await setDoc(doc(db,'topics',String(tid)), {doneScript:true}, {merge:true});
+  }
+  return out;
+}
+
+async function doGenerateJson(tid, scriptText) {
+  const prompt = `You are a video director breaking a finalized Hindi voiceover script into a scene-by-scene Google Flow generation plan for a single locked AI avatar. Convert the script below into a JSON array, one object per script part (5-6 parts), in EXACTLY this format and field structure:\n\n${MCDONALDS_JSON}\n\nRules:\n- Part 1 "generation_type" must say "FRESH generation — attach Ingredients avatar reference image here". Every other part must say "EXTEND from Part N — do NOT restart Ingredients."\n- "dialogue" must be copied EXACTLY from the script for that part — do not paraphrase or shorten it.\n- "b_roll" must be a specific, real-world visual tied to what's actually being said in that part (not a generic placeholder) — no humans in b-roll.\n- "motion_graphics" should surface the single most important number, name, or phrase from that part's dialogue.\n- Keep "negative_prompt" identical across all parts: no women, no other men, no extra people, no extra presenter, no face except the uploaded avatar, no distorted hands.\n- Output ONLY the JSON array, no markdown fences, no extra commentary.\n\nScript:\n${scriptText}`;
+  const out = await callGemini(prompt);
+  if (out) {
+    await updateField(tid, 'json', out);
+    await setDoc(doc(db,'topics',String(tid)), {doneJson:true}, {merge:true});
+  }
+  return out;
+}
+
+window.submitResearch = function(tid, btn) {
+  runGenerate(btn, async () => {
+    tid = Number(tid);
+    const ta = document.getElementById('researchPasteBox');
+    const researchText = (ta ? ta.value : '').trim();
+    if (!researchText) { alert('Pehle Perplexity ka research yahan paste karo.'); return; }
+    await updateField(tid, 'research', researchText);
+    await setDoc(doc(db,'topics',String(tid)), {doneResearch:true}, {merge:true});
+    await doGenerateScript(tid, researchText);
+    activeTab = 'script';
+    renderStudio();
+  });
+}
+
 window.generateScript = function(tid, btn) {
   runGenerate(btn, async () => {
     tid = Number(tid);
-    const topic = TOPICS.find(x => x.id === tid);
-    const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.research||'').trim()) { alert('Pehle Research tab me research paste karo.'); return; }
-    const prompt = `You are one of the world's best short-form video scriptwriters, trained on the hook and retention techniques used by the top-performing YouTube Shorts and Instagram Reels creators globally (fast pattern interrupts, open loops, escalating stakes, satisfying payoffs). You write for a Hindi business-storytelling channel using a single AI avatar talking to camera.\n\nUsing the research below, write a NEW 5-part script for this topic, in EXACTLY the same format and part-count as this reference example:\n\n${MCDONALDS_SCRIPT}\n\nWORLD-CLASS SCRIPT RULES:\n- HOOK (Part 1, first line): open with ONE of these — a shocking number/stat, a contrarian statement that challenges what people assume, or a mystery question that demands an answer. Never start with "aaj hum baat karenge" or any throat-clearing.\n- OPEN LOOP: by the end of Part 1, plant a question in the viewer's mind that only gets answered later — this is what stops the skip/scroll.\n- ESCALATION: Parts 2-3 must each add a new twist or raise the stakes versus what was just said — never just restate the same fact two different ways.\n- MICRO-CLIFFHANGERS: end Parts 1-4 on an incomplete thought or a "but here's the twist" style bridge — never a flat, closed sentence that lets attention drop.\n- PAYOFF: Part 4 must deliver the "aha" — the actual reveal the hook promised — ideally backed by a real quote from the research.\n- LESSON + CTA: Part 5 gives one clear, practical takeaway, then a natural "follow karo" CTA — never salesy or robotic.\n- VOICE: write exactly like explaining this to a smart friend over chai — simple spoken Hindi/Hinglish, mostly 6-12 word sentences, active voice, zero filler words (avoid "basically", "actually", "essentially"), concrete numbers instead of vague amounts.\n- Use ONLY facts present in the research below — never invent numbers, dates, or quotes.\n- Keep total spoken length to roughly 45-60 seconds across the 5 parts, matching the example's pacing.\n\nTopic: ${title}\nCategory: ${topic ? topic.cat : ''}\nResearch:\n${d.research}`;
-    const out = await callGemini(prompt);
-    if (out) { await updateField(tid, 'script', out); await setDoc(doc(db,'topics',String(tid)), {doneScript:true}, {merge:true}); }
+    await doGenerateScript(tid, d.research);
+    renderStudio();
+  });
+}
+
+window.retryScript = function(tid, btn) {
+  runGenerate(btn, async () => {
+    tid = Number(tid);
+    const d = getData(tid);
+    if (!(d.research||'').trim()) { alert('Research nahi mila — pehle Research tab bharo.'); return; }
+    await doGenerateScript(tid, d.research, d.script || '');
+    renderStudio();
+  });
+}
+
+window.finalizeScriptAndGenerateJson = function(tid, btn) {
+  runGenerate(btn, async () => {
+    tid = Number(tid);
+    const ta = document.getElementById('scriptBox');
+    const scriptText = (ta ? ta.value : '').trim();
+    if (!scriptText) { alert('Script khaali hai — pehle generate karo ya likho.'); return; }
+    await updateField(tid, 'script', scriptText);
+    await setDoc(doc(db,'topics',String(tid)), {doneScript:true}, {merge:true});
+    await doGenerateJson(tid, scriptText);
+    activeTab = 'json';
+    renderStudio();
   });
 }
 
 window.generateJson = function(tid, btn) {
   runGenerate(btn, async () => {
     tid = Number(tid);
-    const topic = TOPICS.find(x => x.id === tid);
-    const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.script||'').trim()) { alert('Pehle Script tab me script ready karo.'); return; }
-    const prompt = `You are a video director breaking a finalized Hindi voiceover script into a scene-by-scene Google Flow generation plan for a single locked AI avatar. Convert the script below into a JSON array, one object per script part, in EXACTLY this format and field structure:\n\n${MCDONALDS_JSON}\n\nRules:\n- Part 1 "generation_type" must say "FRESH generation — attach Ingredients avatar reference image here". Every other part must say "EXTEND from Part N — do NOT restart Ingredients."\n- "dialogue" must be copied EXACTLY from the script for that part — do not paraphrase or shorten it.\n- "b_roll" must be a specific, real-world visual tied to what's actually being said in that part (not a generic placeholder) — no humans in b-roll.\n- "motion_graphics" should surface the single most important number, name, or phrase from that part's dialogue.\n- Keep "negative_prompt" identical across all parts: no women, no other men, no extra people, no extra presenter, no face except the uploaded avatar, no distorted hands.\n- Output ONLY the JSON array, no markdown fences, no extra commentary.\n\nTopic: ${title}\nScript:\n${d.script}`;
-    const out = await callGemini(prompt);
-    if (out) { await updateField(tid, 'json', out); await setDoc(doc(db,'topics',String(tid)), {doneJson:true}, {merge:true}); }
+    await doGenerateJson(tid, d.script);
+    renderStudio();
   });
 }
 
@@ -1120,19 +1175,26 @@ window.setStudioTab = function(key) { activeTab = key; renderStudio(); }
 function panelHtml(tab, t, d) {
   if (tab === 'research') return `
     <div class="studio-panel-title">${ICONS.research} Step 1 — Research</div>
-    <div class="studio-panel-desc">Neeche ye poora prompt is topic ke liye ready hai — Perplexity.ai kholo, paste karo, jo jawab aaye wo uske neeche wale box me paste kar do. Ye research agle steps (Script, Captions, Carousel) sabme automatically use hogi.</div>
+    <div class="studio-panel-desc">Neeche ye poora prompt is topic ke liye ready hai — Perplexity.ai kholo, paste karo, jo jawab aaye wo uske neeche wale box me paste kar ke "Submit" dabao — script khud-ba-khud ban ke Script tab me ready mil jayega.</div>
     <div class="field-label">Research Prompt (is topic ke liye ready-made)</div>
-    <textarea readonly onclick="this.select()" style="min-height:130px;background:#fafbfc">${buildResearchPrompt(t)}</textarea>
+    <textarea id="researchPromptBox" readonly onclick="this.select()" style="min-height:130px;background:#fafbfc">${buildResearchPrompt(t)}</textarea>
     <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="copyTopicResearch(${t.id})">${ICONS.copy}Copy Research Prompt</button>
     <div class="field-label" style="margin-top:18px">Perplexity Ka Jawab Yahan Paste Karo</div>
-    <textarea onblur="updateField(${t.id},'research',this.value)" placeholder="Perplexity ka jawab yahan paste karo...">${d.research||''}</textarea>
+    <textarea id="researchPasteBox" onblur="updateField(${t.id},'research',this.value)" placeholder="Perplexity ka jawab yahan paste karo...">${d.research||''}</textarea>
+    <button class="btn btn-primary" style="margin-top:10px" onclick="submitResearch(${t.id}, this)">${ICONS.wand}Submit Research &amp; Generate Script</button>
   `;
-  if (tab === 'script') return `
+  if (tab === 'script') {
+    const hasScript = !!(d.script||'').trim();
+    return `
     <div class="studio-panel-title">${ICONS.script} Step 2 — Script</div>
-    <div class="studio-panel-desc">Research tab bharne ke baad neeche button dabao — 5-part Hindi script seedha yahan ban jayega. Padh ke jaisa chahiye waisa edit karo, phir upar "Script" stage-chip pe click karke lock/final maano.</div>
-    <button class="btn btn-ai" onclick="generateScript(${t.id}, this)">${ICONS.wand}Generate Script with AI</button>
-    <textarea onblur="updateField(${t.id},'script',this.value)" placeholder="Research tab pehle bharo, phir Generate dabao, ya khud script likho...">${d.script||''}</textarea>
+    <div class="studio-panel-desc">Research submit karte hi yahan script khud ban jata hai. Pasand nahi aaya to "Retry" dabao — naya, behtar version milega. Final ho jaye to "Final Submit" dabao — script lock ho jayega aur agle hi second JSON khud ban jayega.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ai" onclick="${hasScript ? `retryScript(${t.id}, this)` : `generateScript(${t.id}, this)`}">${ICONS.wand}${hasScript ? 'Retry — Better Script' : 'Generate Script with AI'}</button>
+      <button class="btn btn-primary" onclick="finalizeScriptAndGenerateJson(${t.id}, this)"${hasScript ? '' : ' disabled'}>${ICONS.json}Final Submit — Lock &amp; Generate JSON</button>
+    </div>
+    <textarea id="scriptBox" onblur="updateField(${t.id},'script',this.value)" placeholder="Research tab pehle bharo aur Submit dabao, ya khud script likho...">${d.script||''}</textarea>
   `;
+  }
   if (tab === 'json') return `
     <div class="studio-panel-title">${ICONS.json} Step 3 — Flow JSON (Video Scenes)</div>
     <div class="studio-panel-desc">Script final ho jaane ke baad button dabao — scene-by-scene Google Flow JSON usi finalized script se seedha ban jayega. Isko copy karke Google Flow / Gemini me le jaake video generate karo.</div>
