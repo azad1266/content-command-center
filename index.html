@@ -754,8 +754,15 @@ function copyPlain(text) {
   });
 }
 
-window.copyTopicResearch = function(tid, title) { copyPlain(buildResearchPrompt(title)); }
-window.copyIdea = function(title, desc) { copyPlain(title + ' — ' + desc); }
+window.copyTopicResearch = function(tid) {
+  const t = TOPICS.find(x => x.id === Number(tid));
+  if (t) copyPlain(buildResearchPrompt(t.title));
+}
+window.copyIdeaAt = function(kind, idx) {
+  const arr = kind === 'reels' ? REELS_IDEAS : CAROUSEL_IDEAS;
+  const i = arr[idx];
+  if (i) copyPlain(i.title + ' — ' + i.ex);
+}
 
 window.toggleSettings = function() { document.getElementById('settingsPanel').classList.toggle('open'); }
 window.saveGeminiKey = function() {
@@ -784,8 +791,11 @@ async function runGenerate(btn, fn) {
   btn.textContent = orig; btn.disabled = false;
 }
 
-window.generateScript = function(tid, title, btn) {
+window.generateScript = function(tid, btn) {
   runGenerate(btn, async () => {
+    tid = Number(tid);
+    const topic = TOPICS.find(x => x.id === tid);
+    const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.research||'').trim()) { alert('Pehle Research tab me research paste karo.'); return; }
     const prompt = `You are a scriptwriter for a Hindi business-storytelling YouTube Shorts channel. Using the research below, write a punchy 5-part spoken script in Hindi/Hinglish (natural conversational tone), formatted exactly like this example:\n\n${MCDONALDS_SCRIPT}\n\nNow write a new script in the same format for:\nTopic: ${title}\nResearch:\n${d.research}`;
@@ -794,8 +804,11 @@ window.generateScript = function(tid, title, btn) {
   });
 }
 
-window.generateJson = function(tid, title, btn) {
+window.generateJson = function(tid, btn) {
   runGenerate(btn, async () => {
+    tid = Number(tid);
+    const topic = TOPICS.find(x => x.id === tid);
+    const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.script||'').trim()) { alert('Pehle Script tab me script ready karo.'); return; }
     const prompt = `Convert this Hindi voiceover script into a Google Flow scene-by-scene JSON array, one object per script part, in EXACTLY this format:\n\n${MCDONALDS_JSON}\n\nRules: part 1 must say "FRESH generation — attach Ingredients avatar reference image here", every other part must say "EXTEND from Part N — do NOT restart Ingredients." Keep dialogue text identical to the script. Output ONLY the JSON array, no extra commentary.\n\nTopic: ${title}\nScript:\n${d.script}`;
@@ -804,8 +817,11 @@ window.generateJson = function(tid, title, btn) {
   });
 }
 
-window.generateCaptions = function(tid, title, btn) {
+window.generateCaptions = function(tid, btn) {
   runGenerate(btn, async () => {
+    tid = Number(tid);
+    const topic = TOPICS.find(x => x.id === tid);
+    const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.script||'').trim() && !(d.research||'').trim()) { alert('Pehle Research ya Script bharo.'); return; }
     const prompt = `Based on this business storytelling video, write publish-ready copy for three platforms. Format exactly like this with clear headers:\n\nYOUTUBE SHORTS:\nTitle: ...\nDescription: ...\nTags: tag1, tag2, tag3...\n\nINSTAGRAM:\nCaption: ...\nHashtags: #tag1 #tag2 ...\n\nTWITTER / X:\nPost: ...\n\nUse punchy Hindi/Hinglish for titles and captions where natural. Keep hashtags relevant to AI/business/startup niche.\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
@@ -814,8 +830,11 @@ window.generateCaptions = function(tid, title, btn) {
   });
 }
 
-window.generateCarousel = function(tid, title, btn) {
+window.generateCarousel = function(tid, btn) {
   runGenerate(btn, async () => {
+    tid = Number(tid);
+    const topic = TOPICS.find(x => x.id === tid);
+    const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.research||'').trim() && !(d.script||'').trim()) { alert('Pehle Research ya Script bharo.'); return; }
     const prompt = `Create an Instagram carousel for this business story, Hormozi-style: slide 1 is one strong claim or result as the hook, slides 2 through 9 walk through step-by-step reasoning (one idea per slide, short punchy Hindi/Hinglish text), final slide is the lesson plus a follow CTA. 8 to 10 slides total. For EACH slide also give a one-line background/visual image-generation prompt (dark minimal background, bold typography, no photos of people, professional editorial style, suitable for pasting into ChatGPT/Gemini image generation). Format as:\n\nSLIDE 1:\nText: ...\nImage prompt: ...\n\nSLIDE 2:\n...\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
@@ -839,14 +858,14 @@ function renderIdeas() {
       <div class="idea-title">${ICONS.video}${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
       <div class="idea-example"><b>Example:</b> ${i.ex}</div>
-      <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.ex)})">Copy example</button>
+      <button class="idea-btn" onclick="copyIdeaAt('reels', ${idx})">Copy example</button>
     </div>`).join('');
   document.getElementById('carouselIdeas').innerHTML = CAROUSEL_IDEAS.map((i,idx) => `
     <div class="idea-card" style="border-left-color:var(--${colors[idx%colors.length]})">
       <div class="idea-title">${ICONS.carousel}${i.title}</div>
       <div class="idea-desc">${i.desc}</div>
       <div class="idea-example"><b>Example:</b> ${i.ex}</div>
-      <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.ex)})">Copy example</button>
+      <button class="idea-btn" onclick="copyIdeaAt('carousel', ${idx})">Copy example</button>
     </div>`).join('');
 }
 
@@ -882,37 +901,40 @@ window.setStudioTab = function(key) { activeTab = key; renderStudio(); }
 
 function panelHtml(tab, t, d) {
   if (tab === 'research') return `
-    <div class="studio-panel-title">${ICONS.research} Research</div>
-    <div class="studio-panel-desc">Perplexity.ai kholo, neeche wala prompt paste karo, jo jawab aaye wo yahan paste kar do. Ye research agle steps (Script, Captions, Carousel) sabme use hogi.</div>
-    <button class="btn btn-outline btn-sm" onclick="copyTopicResearch(${t.id}, ${JSON.stringify(t.title)})">${ICONS.copy}Copy Research Prompt</button>
+    <div class="studio-panel-title">${ICONS.research} Step 1 — Research</div>
+    <div class="studio-panel-desc">Neeche ye poora prompt is topic ke liye ready hai — Perplexity.ai kholo, paste karo, jo jawab aaye wo uske neeche wale box me paste kar do. Ye research agle steps (Script, Captions, Carousel) sabme automatically use hogi.</div>
+    <div class="field-label">Research Prompt (is topic ke liye ready-made)</div>
+    <textarea readonly onclick="this.select()" style="min-height:130px;background:#fafbfc">${buildResearchPrompt(t.title)}</textarea>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="copyTopicResearch(${t.id})">${ICONS.copy}Copy Research Prompt</button>
+    <div class="field-label" style="margin-top:18px">Perplexity Ka Jawab Yahan Paste Karo</div>
     <textarea onblur="updateField(${t.id},'research',this.value)" placeholder="Perplexity ka jawab yahan paste karo...">${d.research||''}</textarea>
   `;
   if (tab === 'script') return `
-    <div class="studio-panel-title">${ICONS.script} Script</div>
-    <div class="studio-panel-desc">Research tab bharne ke baad neeche button dabao — 5-part Hindi script seedha yahan ban jayega. Chaho to khud bhi likh/edit kar sakte ho.</div>
-    <button class="btn btn-ai" onclick="generateScript(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Script with AI</button>
+    <div class="studio-panel-title">${ICONS.script} Step 2 — Script</div>
+    <div class="studio-panel-desc">Research tab bharne ke baad neeche button dabao — 5-part Hindi script seedha yahan ban jayega. Padh ke jaisa chahiye waisa edit karo, phir upar "Script" stage-chip pe click karke lock/final maano.</div>
+    <button class="btn btn-ai" onclick="generateScript(${t.id}, this)">${ICONS.wand}Generate Script with AI</button>
     <textarea onblur="updateField(${t.id},'script',this.value)" placeholder="Research tab pehle bharo, phir Generate dabao, ya khud script likho...">${d.script||''}</textarea>
   `;
   if (tab === 'json') return `
-    <div class="studio-panel-title">${ICONS.json} Flow JSON (Video Scenes)</div>
-    <div class="studio-panel-desc">Script tab ban jaane ke baad button dabao — scene-by-scene Google Flow JSON ban jayega. Isko copy karke Google Flow / Gemini me le jaake video generate karo.</div>
-    <button class="btn btn-ai" onclick="generateJson(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Flow JSON with AI</button>
+    <div class="studio-panel-title">${ICONS.json} Step 3 — Flow JSON (Video Scenes)</div>
+    <div class="studio-panel-desc">Script final ho jaane ke baad button dabao — scene-by-scene Google Flow JSON usi finalized script se seedha ban jayega. Isko copy karke Google Flow / Gemini me le jaake video generate karo.</div>
+    <button class="btn btn-ai" onclick="generateJson(${t.id}, this)">${ICONS.wand}Generate Flow JSON with AI</button>
     <textarea onblur="updateField(${t.id},'json',this.value)" placeholder="Script tab pehle bharo, phir Generate dabao, ya khud JSON paste karo...">${d.json||''}</textarea>
   `;
   if (tab === 'captions') return `
-    <div class="studio-panel-title">${ICONS.hash} Captions, Title &amp; Hashtags</div>
+    <div class="studio-panel-title">${ICONS.hash} Step 4 — Captions, Title &amp; Hashtags</div>
     <div class="studio-panel-desc">Ek click me YouTube title+description+tags, Instagram caption+hashtags, aur Twitter/X post — teeno ready ban jayenge.</div>
-    <button class="btn btn-ai" onclick="generateCaptions(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Captions with AI</button>
+    <button class="btn btn-ai" onclick="generateCaptions(${t.id}, this)">${ICONS.wand}Generate Captions with AI</button>
     <textarea onblur="updateField(${t.id},'captions',this.value)" placeholder="Research ya Script tab pehle bharo, phir Generate dabao...">${d.captions||''}</textarea>
   `;
   if (tab === 'carousel') return `
-    <div class="studio-panel-title">${ICONS.carousel} Carousel + Image Prompts</div>
+    <div class="studio-panel-title">${ICONS.carousel} Step 5 — Carousel + Image Prompts</div>
     <div class="studio-panel-desc">Ek click me 8-10 slide ka Instagram carousel copy + har slide ka image-generation prompt ban jayega (ChatGPT/Gemini me paste karne ke liye).</div>
-    <button class="btn btn-ai" onclick="generateCarousel(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Carousel with AI</button>
+    <button class="btn btn-ai" onclick="generateCarousel(${t.id}, this)">${ICONS.wand}Generate Carousel with AI</button>
     <textarea onblur="updateField(${t.id},'carousel',this.value)" placeholder="Research ya Script tab pehle bharo, phir Generate dabao...">${d.carousel||''}</textarea>
   `;
   if (tab === 'publish') return `
-    <div class="studio-panel-title">${ICONS.send} Publish — Posted Links</div>
+    <div class="studio-panel-title">${ICONS.send} Step 6 — Publish (Posted Links)</div>
     <div class="studio-panel-desc">Jab video/carousel post ho jaye, uske links yahan save kar do — dashboard khud "Posted" mark kar dega jab teeno bhar doge.</div>
     <div class="link-row">
       <div class="link-item"><label>YouTube Shorts</label><input value="${d.shortsUrl||''}" placeholder="https://youtube.com/shorts/..." onblur="updateField(${t.id},'shortsUrl',this.value)"></div>
@@ -996,6 +1018,12 @@ window.pickRandom = function pickRandom() {
   const pick = pool[Math.floor(Math.random() * pool.length)];
   currentPick = pick;
   document.getElementById('pickTitle').textContent = '#' + pick.id + ' — ' + pick.title;
+  const sel = document.getElementById('studioTopicSelect');
+  if (sel) {
+    sel.value = pick.id;
+    activeTab = 'research';
+    renderStudio();
+  }
 }
 
 window.copyText = function copyText(id) {
