@@ -148,22 +148,21 @@
 
   .studio-select {
     width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid var(--border);
-    font-size: 13.5px; font-weight: 600; background: #fafbfc; color: var(--text); font-family: inherit; margin-bottom: 18px;
+    font-size: 13.5px; font-weight: 600; background: #fafbfc; color: var(--text); font-family: inherit; margin-bottom: 16px;
   }
-  .studio-step { display: flex; gap: 14px; margin-bottom: 20px; }
-  .studio-step-num {
-    width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff;
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0;
+  .studio-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
+  .studio-tab-btn {
+    display: flex; align-items: center; gap: 7px; padding: 9px 15px; border-radius: 9px; border: 1.5px solid var(--border);
+    background: #fff; color: var(--muted); font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit;
   }
-  .studio-step-body { flex: 1; min-width: 0; }
-  .studio-step-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
-  .studio-step-desc { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; line-height: 1.55; }
-  .studio-step textarea {
-    width: 100%; min-height: 110px; font-size: 12.5px; border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px; font-family: ui-monospace, "SF Mono", Menlo, monospace; resize: vertical;
-    background: #fff; color: var(--text); margin-top: 10px;
+  .studio-tab-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .studio-panel-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .studio-panel-desc { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; max-width: 640px; }
+  .studio-panel textarea {
+    width: 100%; min-height: 240px; font-size: 12.5px; border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; resize: vertical;
+    background: #fff; color: var(--text); margin-top: 12px;
   }
-  .studio-link { color: var(--indigo); font-weight: 600; }
 
   .workflow { display: flex; align-items: flex-start; gap: 0; margin-top: 4px; overflow-x: auto; padding-bottom: 4px; }
   .wf-step { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 108px; position: relative; }
@@ -174,8 +173,8 @@
   .wf-step:nth-child(1) .circle { background: linear-gradient(135deg, var(--amber), #f0b649); }
   .wf-step:nth-child(3) .circle { background: linear-gradient(135deg, var(--blue), #5b8def); }
   .wf-step:nth-child(5) .circle { background: linear-gradient(135deg, var(--purple), #a78bfa); }
-  .wf-step:nth-child(7) .circle { background: linear-gradient(135deg, var(--accent), #ff9552); }
-  .wf-step:nth-child(9) .circle { background: linear-gradient(135deg, var(--teal), #5eead4); }
+  .wf-step:nth-child(7) .circle { background: linear-gradient(135deg, var(--pink), #f472b6); }
+  .wf-step:nth-child(9) .circle { background: linear-gradient(135deg, var(--accent), #ff9552); }
   .wf-step:nth-child(11) .circle { background: linear-gradient(135deg, var(--green), #6ee7b7); }
   .wf-step .wf-title { font-size: 12px; font-weight: 700; }
   .wf-step .wf-desc { font-size: 10.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; padding: 0 4px; }
@@ -301,12 +300,6 @@
     font-size: 11.5px; font-weight: 700; margin: 14px 0 5px; color: var(--muted); text-transform: uppercase;
     letter-spacing: .03em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   }
-  .field-label .spacer { margin-left: auto; display: flex; gap: 6px; }
-  .topic-body textarea {
-    width: 100%; min-height: 90px; font-size: 12.5px; border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px; font-family: ui-monospace, "SF Mono", Menlo, monospace; resize: vertical;
-    background: #fff; color: var(--text);
-  }
   .link-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
   .link-row input {
     flex: 1; min-width: 180px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
@@ -314,9 +307,6 @@
   }
   .link-row label { font-size: 10.5px; color: var(--muted); display: block; margin-bottom: 3px; font-weight: 600; }
   .link-item { flex: 1; min-width: 180px; }
-
-  .saved-tag { font-size: 10.5px; color: var(--green); opacity: 0; transition: opacity 0.3s; font-weight: 700; text-transform: none; letter-spacing: 0; }
-  .saved-tag.show { opacity: 1; }
 
   footer.foot { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 0 8px; }
 
@@ -336,7 +326,7 @@
   </div>
   <div class="navlinks">
     <a href="#overview">Overview</a>
-    <a href="#studio">Script &amp; Carousel Studio</a>
+    <a href="#studio">Studio</a>
     <a href="#ideas">Idea Banks</a>
     <a href="#templates">Templates</a>
     <a href="#topics">Topics</a>
@@ -351,7 +341,7 @@
   <div class="settings-inner">
     <input type="password" id="geminiKeyInput" placeholder="Paste your free Gemini API key here (from aistudio.google.com/apikey)">
     <button class="btn btn-primary btn-sm" onclick="saveGeminiKey()">Save key</button>
-    <span class="settings-note">Key sirf is browser ke localStorage me save hota hai — GitHub par kabhi upload nahi hota. Isse "Generate with AI" buttons Script aur Carousel ke liye kaam karte hain.</span>
+    <span class="settings-note">Key sirf is browser ke localStorage me save hota hai — GitHub par kabhi upload nahi hota. Isse "Generate with AI" buttons kaam karte hain.</span>
   </div>
 </div>
 
@@ -373,14 +363,16 @@
     <div class="pick-title" id="pickTitle">&mdash;</div>
     <div class="pick-actions">
       <button class="btn btn-primary" onclick="pickRandom()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 2v6h-6M3 22v-6h6M3.5 9a8.5 8.5 0 0 1 14.9-4.9M20.5 15a8.5 8.5 0 0 1-14.9 4.9"/></svg>Suggest New Topic</button>
-      <button class="btn btn-ghost" onclick="openInStudio(currentPick.id)"><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Write Script + Carousel for This</button>
+      <button class="btn btn-ghost" onclick="openInStudio(currentPick.id)"><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Work on This Topic</button>
     </div>
   </div>
 
   <div class="card" id="studio">
-    <div class="card-head"><div class="card-icon i-green"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="card-text"><h2>Script &amp; Carousel Studio</h2><div class="card-sub" style="margin-bottom:0">Yahi par sab kuchh banta hai. Topic chuno neeche, phir 4 steps follow karo — research paste karo, AI se Script aur Carousel generate karo.</div></div></div>
+    <div class="card-head"><div class="card-icon i-green"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="card-text"><h2>Production Studio</h2><div class="card-sub" style="margin-bottom:0">Topic chuno, phir neeche tabs se ek-ek process alag-alag karo: Research, Script, JSON, Captions, Carousel, Publish.</div></div></div>
     <select class="studio-select" id="studioTopicSelect" onchange="renderStudio()"></select>
-    <div id="studioBody"></div>
+    <div class="stage-row" id="studioStageRow"></div>
+    <div class="studio-tabs" id="studioTabs"></div>
+    <div class="studio-panel" id="studioPanel"></div>
   </div>
 
   <div class="card" id="pipeline">
@@ -390,11 +382,11 @@
       <div class="wf-line"></div>
       <div class="wf-step"><div class="circle">2</div><div class="wf-title">Script</div><div class="wf-desc">AI-generate the 5-part Hindi script</div></div>
       <div class="wf-line"></div>
-      <div class="wf-step"><div class="circle">3</div><div class="wf-title">JSON</div><div class="wf-desc">Build Google Flow scene-by-scene prompts</div></div>
+      <div class="wf-step"><div class="circle">3</div><div class="wf-title">JSON</div><div class="wf-desc">AI-generate Google Flow scene JSON</div></div>
       <div class="wf-line"></div>
-      <div class="wf-step"><div class="circle">4</div><div class="wf-title">Video</div><div class="wf-desc">Generate in Flow — Ingredients + Extend</div></div>
+      <div class="wf-step"><div class="circle">4</div><div class="wf-title">Captions</div><div class="wf-desc">AI-generate title, caption, hashtags</div></div>
       <div class="wf-line"></div>
-      <div class="wf-step"><div class="circle">5</div><div class="wf-title">Edited</div><div class="wf-desc">CapCut — music, SFX, captions</div></div>
+      <div class="wf-step"><div class="circle">5</div><div class="wf-title">Carousel</div><div class="wf-desc">AI-generate slides + image prompts</div></div>
       <div class="wf-line"></div>
       <div class="wf-step"><div class="circle">6</div><div class="wf-title">Posted</div><div class="wf-desc">Shorts + Reel + Carousel, links saved</div></div>
     </div>
@@ -680,16 +672,27 @@ const ICONS = {
   script: '<svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>',
   json: '<svg class="ic" viewBox="0 0 24 24"><path d="M16 3H8a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h8"/></svg>',
   video: '<svg class="ic" viewBox="0 0 24 24"><path d="m23 7-7 5 7 5V7Z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
-  edited: '<svg class="ic" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>',
   posted: '<svg class="ic" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
   wand: '<svg class="ic" viewBox="0 0 24 24"><path d="m15 4 1.5 1.5M4 20l9-9M18 12l1.5 1.5M9 4 4 9M15.5 8.5 20 4"/></svg>',
   copy: '<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
-  carousel: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'
+  carousel: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  hash: '<svg class="ic" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg>',
+  send: '<svg class="ic" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>'
 };
+
+const TABS = [
+  {key: 'research', label: 'Research', icon: ICONS.research},
+  {key: 'script', label: 'Script', icon: ICONS.script},
+  {key: 'json', label: 'JSON', icon: ICONS.json},
+  {key: 'captions', label: 'Captions', icon: ICONS.hash},
+  {key: 'carousel', label: 'Carousel', icon: ICONS.carousel},
+  {key: 'publish', label: 'Publish', icon: ICONS.send}
+];
 
 let topicsCache = {};
 let seeded = false;
 let currentPick = null;
+let activeTab = 'research';
 
 onSnapshot(topicsCol, (snapshot) => {
   snapshot.forEach(d => { topicsCache[d.id] = d.data(); });
@@ -730,9 +733,8 @@ function statIcon(s) {
   return {'Not Started':ICONS.copy,'Researching':ICONS.research,'Script Ready':ICONS.script,'JSON Ready':ICONS.json,'In Production':ICONS.video,'Posted':ICONS.posted}[s];
 }
 
-async function updateField(tid, field, value, btn) {
+async function updateField(tid, field, value) {
   await setDoc(doc(db, 'topics', String(tid)), {[field]: value}, {merge: true});
-  if (btn) { btn.classList.add('show'); setTimeout(() => btn.classList.remove('show'), 1500); }
 }
 window.updateField = updateField;
 
@@ -752,10 +754,6 @@ function copyPlain(text) {
   });
 }
 
-window.copyPickResearch = function() {
-  if (!currentPick) return;
-  copyPlain(buildResearchPrompt(currentPick.title));
-}
 window.copyTopicResearch = function(tid, title) { copyPlain(buildResearchPrompt(title)); }
 window.copyIdea = function(title, desc) { copyPlain(title + ' — ' + desc); }
 
@@ -780,34 +778,50 @@ async function callGemini(prompt) {
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-window.generateScript = async function(tid, title, btn) {
-  const d = getData(tid);
-  const research = d.research || '';
-  if (!research.trim()) { alert('Pehle Step 1 me Research Notes bharo.'); return; }
+async function runGenerate(btn, fn) {
   const orig = btn.textContent; btn.textContent = 'Generating...'; btn.disabled = true;
-  try {
-    const prompt = `You are a scriptwriter for a Hindi business-storytelling YouTube Shorts channel. Using the research below, write a punchy 5-part spoken script in Hindi/Hinglish (natural conversational tone, not textbook Hindi), formatted exactly like this example:\n\n${MCDONALDS_SCRIPT}\n\nNow write a new script in the same format for:\nTopic: ${title}\nResearch:\n${research}`;
-    const out = await callGemini(prompt);
-    if (out) {
-      await updateField(tid, 'script', out);
-      await setDoc(doc(db, 'topics', String(tid)), {doneScript: true}, {merge: true});
-    }
-  } catch (e) { alert(e.message); }
+  try { await fn(); } catch (e) { alert(e.message); }
   btn.textContent = orig; btn.disabled = false;
 }
 
-window.generateCarousel = async function(tid, title, btn) {
-  const d = getData(tid);
-  const research = d.research || '';
-  const script = d.script || '';
-  if (!research.trim() && !script.trim()) { alert('Pehle Step 1 (Research) ya Step 2 (Script) me kuchh bharo.'); return; }
-  const orig = btn.textContent; btn.textContent = 'Generating...'; btn.disabled = true;
-  try {
-    const prompt = `Create an Instagram carousel for this business story, Hormozi-style: slide 1 is one strong claim or result as the hook, slides 2 through 9 walk through step-by-step reasoning (one idea per slide, short punchy Hindi/Hinglish text), final slide is the lesson plus a follow CTA. 8 to 10 slides total. For EACH slide also give a one-line background/visual image-generation prompt (dark minimal background, bold typography, no photos of people, professional editorial style, suitable for pasting into ChatGPT/Gemini image generation). Format as:\n\nSLIDE 1:\nText: ...\nImage prompt: ...\n\nSLIDE 2:\n...\n\nTopic: ${title}\nResearch:\n${research}\nScript:\n${script}`;
+window.generateScript = function(tid, title, btn) {
+  runGenerate(btn, async () => {
+    const d = getData(tid);
+    if (!(d.research||'').trim()) { alert('Pehle Research tab me research paste karo.'); return; }
+    const prompt = `You are a scriptwriter for a Hindi business-storytelling YouTube Shorts channel. Using the research below, write a punchy 5-part spoken script in Hindi/Hinglish (natural conversational tone), formatted exactly like this example:\n\n${MCDONALDS_SCRIPT}\n\nNow write a new script in the same format for:\nTopic: ${title}\nResearch:\n${d.research}`;
+    const out = await callGemini(prompt);
+    if (out) { await updateField(tid, 'script', out); await setDoc(doc(db,'topics',String(tid)), {doneScript:true}, {merge:true}); }
+  });
+}
+
+window.generateJson = function(tid, title, btn) {
+  runGenerate(btn, async () => {
+    const d = getData(tid);
+    if (!(d.script||'').trim()) { alert('Pehle Script tab me script ready karo.'); return; }
+    const prompt = `Convert this Hindi voiceover script into a Google Flow scene-by-scene JSON array, one object per script part, in EXACTLY this format:\n\n${MCDONALDS_JSON}\n\nRules: part 1 must say "FRESH generation — attach Ingredients avatar reference image here", every other part must say "EXTEND from Part N — do NOT restart Ingredients." Keep dialogue text identical to the script. Output ONLY the JSON array, no extra commentary.\n\nTopic: ${title}\nScript:\n${d.script}`;
+    const out = await callGemini(prompt);
+    if (out) { await updateField(tid, 'json', out); await setDoc(doc(db,'topics',String(tid)), {doneJson:true}, {merge:true}); }
+  });
+}
+
+window.generateCaptions = function(tid, title, btn) {
+  runGenerate(btn, async () => {
+    const d = getData(tid);
+    if (!(d.script||'').trim() && !(d.research||'').trim()) { alert('Pehle Research ya Script bharo.'); return; }
+    const prompt = `Based on this business storytelling video, write publish-ready copy for three platforms. Format exactly like this with clear headers:\n\nYOUTUBE SHORTS:\nTitle: ...\nDescription: ...\nTags: tag1, tag2, tag3...\n\nINSTAGRAM:\nCaption: ...\nHashtags: #tag1 #tag2 ...\n\nTWITTER / X:\nPost: ...\n\nUse punchy Hindi/Hinglish for titles and captions where natural. Keep hashtags relevant to AI/business/startup niche.\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
+    const out = await callGemini(prompt);
+    if (out) { await updateField(tid, 'captions', out); }
+  });
+}
+
+window.generateCarousel = function(tid, title, btn) {
+  runGenerate(btn, async () => {
+    const d = getData(tid);
+    if (!(d.research||'').trim() && !(d.script||'').trim()) { alert('Pehle Research ya Script bharo.'); return; }
+    const prompt = `Create an Instagram carousel for this business story, Hormozi-style: slide 1 is one strong claim or result as the hook, slides 2 through 9 walk through step-by-step reasoning (one idea per slide, short punchy Hindi/Hinglish text), final slide is the lesson plus a follow CTA. 8 to 10 slides total. For EACH slide also give a one-line background/visual image-generation prompt (dark minimal background, bold typography, no photos of people, professional editorial style, suitable for pasting into ChatGPT/Gemini image generation). Format as:\n\nSLIDE 1:\nText: ...\nImage prompt: ...\n\nSLIDE 2:\n...\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
     const out = await callGemini(prompt);
     if (out) { await updateField(tid, 'carousel', out); }
-  } catch (e) { alert(e.message); }
-  btn.textContent = orig; btn.disabled = false;
+  });
 }
 
 function renderStats() {
@@ -843,6 +857,7 @@ window.toggleTopic = function(tid) {
 window.openInStudio = function(tid) {
   const sel = document.getElementById('studioTopicSelect');
   sel.value = tid;
+  activeTab = 'research';
   renderStudio();
   document.getElementById('studio').scrollIntoView({behavior:'smooth', block:'start'});
 }
@@ -863,66 +878,68 @@ function populateStudioSelect() {
   });
 }
 
-window.renderStudio = function() {
-  const sel = document.getElementById('studioTopicSelect');
-  if (!sel.value && currentPick) sel.value = currentPick.id;
-  const tid = Number(sel.value || (currentPick ? currentPick.id : TOPICS[0].id));
-  const t = TOPICS.find(x => x.id === tid);
-  const d = getData(tid);
-  document.getElementById('studioBody').innerHTML = `
-    <div class="stage-row">
-      ${STAGES.map(st => `
-        <div class="stage-chip ${d[st.key] ? 'done' : ''}" onclick="toggleStage(${t.id},'${st.key}')">
-          <span class="chk">${d[st.key] ? '✓' : ''}</span>${st.label}
-        </div>`).join('')}
-    </div>
+window.setStudioTab = function(key) { activeTab = key; renderStudio(); }
 
-    <div class="studio-step">
-      <div class="studio-step-num">1</div>
-      <div class="studio-step-body">
-        <div class="studio-step-title">${ICONS.research} Research</div>
-        <div class="studio-step-desc">Perplexity.ai kholo, neeche wala prompt paste karo, jo jawab aaye wo yahan paste kar do.</div>
-        <button class="btn btn-outline btn-sm" onclick="copyTopicResearch(${t.id}, ${JSON.stringify(t.title)})">${ICONS.copy}Copy Research Prompt</button>
-        <textarea data-field="research" onblur="updateField(${t.id},'research',this.value)" placeholder="Perplexity ka jawab yahan paste karo...">${d.research||''}</textarea>
-      </div>
-    </div>
-
-    <div class="studio-step">
-      <div class="studio-step-num">2</div>
-      <div class="studio-step-body">
-        <div class="studio-step-title">${ICONS.script} Script</div>
-        <div class="studio-step-desc">Research bharne ke baad neeche button dabao — 5-part Hindi script seedha yahan ban jayega. Chaho to khud bhi likh/edit kar sakte ho.</div>
-        <button class="btn btn-ai" onclick="generateScript(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Script with AI</button>
-        <textarea data-field="script" onblur="updateField(${t.id},'script',this.value)" placeholder="Yahan Generate button dabao, ya khud script likho...">${d.script||''}</textarea>
-      </div>
-    </div>
-
-    <div class="studio-step">
-      <div class="studio-step-num">3</div>
-      <div class="studio-step-body">
-        <div class="studio-step-title">${ICONS.carousel} Carousel + Image Prompts</div>
-        <div class="studio-step-desc">Ek click me 8-10 slide ka Instagram carousel copy + har slide ka image-generation prompt ban jayega (ChatGPT/Gemini me paste karne ke liye).</div>
-        <button class="btn btn-ai" onclick="generateCarousel(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Carousel with AI</button>
-        <textarea data-field="carousel" onblur="updateField(${t.id},'carousel',this.value)" placeholder="Yahan Generate button dabao, ya khud slide copy likho...">${d.carousel||''}</textarea>
-      </div>
-    </div>
-
-    <div class="studio-step">
-      <div class="studio-step-num">4</div>
-      <div class="studio-step-body">
-        <div class="studio-step-title">${ICONS.json} Flow JSON (Video Scenes)</div>
-        <div class="studio-step-desc">Google Flow ke liye scene-by-scene JSON yahan paste karo — template "Reusable Templates" section me hai.</div>
-        <textarea data-field="json" onblur="updateField(${t.id},'json',this.value)" placeholder="Flow scene JSON yahan paste karo...">${d.json||''}</textarea>
-      </div>
-    </div>
-
-    <div class="field-label">Posted Links</div>
+function panelHtml(tab, t, d) {
+  if (tab === 'research') return `
+    <div class="studio-panel-title">${ICONS.research} Research</div>
+    <div class="studio-panel-desc">Perplexity.ai kholo, neeche wala prompt paste karo, jo jawab aaye wo yahan paste kar do. Ye research agle steps (Script, Captions, Carousel) sabme use hogi.</div>
+    <button class="btn btn-outline btn-sm" onclick="copyTopicResearch(${t.id}, ${JSON.stringify(t.title)})">${ICONS.copy}Copy Research Prompt</button>
+    <textarea onblur="updateField(${t.id},'research',this.value)" placeholder="Perplexity ka jawab yahan paste karo...">${d.research||''}</textarea>
+  `;
+  if (tab === 'script') return `
+    <div class="studio-panel-title">${ICONS.script} Script</div>
+    <div class="studio-panel-desc">Research tab bharne ke baad neeche button dabao — 5-part Hindi script seedha yahan ban jayega. Chaho to khud bhi likh/edit kar sakte ho.</div>
+    <button class="btn btn-ai" onclick="generateScript(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Script with AI</button>
+    <textarea onblur="updateField(${t.id},'script',this.value)" placeholder="Research tab pehle bharo, phir Generate dabao, ya khud script likho...">${d.script||''}</textarea>
+  `;
+  if (tab === 'json') return `
+    <div class="studio-panel-title">${ICONS.json} Flow JSON (Video Scenes)</div>
+    <div class="studio-panel-desc">Script tab ban jaane ke baad button dabao — scene-by-scene Google Flow JSON ban jayega. Isko copy karke Google Flow / Gemini me le jaake video generate karo.</div>
+    <button class="btn btn-ai" onclick="generateJson(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Flow JSON with AI</button>
+    <textarea onblur="updateField(${t.id},'json',this.value)" placeholder="Script tab pehle bharo, phir Generate dabao, ya khud JSON paste karo...">${d.json||''}</textarea>
+  `;
+  if (tab === 'captions') return `
+    <div class="studio-panel-title">${ICONS.hash} Captions, Title &amp; Hashtags</div>
+    <div class="studio-panel-desc">Ek click me YouTube title+description+tags, Instagram caption+hashtags, aur Twitter/X post — teeno ready ban jayenge.</div>
+    <button class="btn btn-ai" onclick="generateCaptions(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Captions with AI</button>
+    <textarea onblur="updateField(${t.id},'captions',this.value)" placeholder="Research ya Script tab pehle bharo, phir Generate dabao...">${d.captions||''}</textarea>
+  `;
+  if (tab === 'carousel') return `
+    <div class="studio-panel-title">${ICONS.carousel} Carousel + Image Prompts</div>
+    <div class="studio-panel-desc">Ek click me 8-10 slide ka Instagram carousel copy + har slide ka image-generation prompt ban jayega (ChatGPT/Gemini me paste karne ke liye).</div>
+    <button class="btn btn-ai" onclick="generateCarousel(${t.id}, ${JSON.stringify(t.title)}, this)">${ICONS.wand}Generate Carousel with AI</button>
+    <textarea onblur="updateField(${t.id},'carousel',this.value)" placeholder="Research ya Script tab pehle bharo, phir Generate dabao...">${d.carousel||''}</textarea>
+  `;
+  if (tab === 'publish') return `
+    <div class="studio-panel-title">${ICONS.send} Publish — Posted Links</div>
+    <div class="studio-panel-desc">Jab video/carousel post ho jaye, uske links yahan save kar do — dashboard khud "Posted" mark kar dega jab teeno bhar doge.</div>
     <div class="link-row">
       <div class="link-item"><label>YouTube Shorts</label><input value="${d.shortsUrl||''}" placeholder="https://youtube.com/shorts/..." onblur="updateField(${t.id},'shortsUrl',this.value)"></div>
       <div class="link-item"><label>Instagram Reel</label><input value="${d.reelUrl||''}" placeholder="https://instagram.com/reel/..." onblur="updateField(${t.id},'reelUrl',this.value)"></div>
       <div class="link-item"><label>Carousel Post</label><input value="${d.carouselUrl||''}" placeholder="https://instagram.com/p/..." onblur="updateField(${t.id},'carouselUrl',this.value)"></div>
     </div>
   `;
+  return '';
+}
+
+window.renderStudio = function() {
+  const sel = document.getElementById('studioTopicSelect');
+  if (!sel.value && currentPick) sel.value = currentPick.id;
+  const tid = Number(sel.value || (currentPick ? currentPick.id : TOPICS[0].id));
+  const t = TOPICS.find(x => x.id === tid);
+  const d = getData(tid);
+
+  document.getElementById('studioStageRow').innerHTML = STAGES.map(st => `
+    <div class="stage-chip ${d[st.key] ? 'done' : ''}" onclick="toggleStage(${t.id},'${st.key}')">
+      <span class="chk">${d[st.key] ? '✓' : ''}</span>${st.label}
+    </div>`).join('');
+
+  document.getElementById('studioTabs').innerHTML = TABS.map(tb => `
+    <button class="studio-tab-btn ${activeTab===tb.key?'active':''}" onclick="setStudioTab('${tb.key}')">${tb.icon}${tb.label}</button>
+  `).join('');
+
+  document.getElementById('studioPanel').innerHTML = panelHtml(activeTab, t, d);
 }
 
 window.render = function render() {
@@ -956,18 +973,13 @@ window.render = function render() {
         <span class="badge ${stageClass(s)}">${s}</span>
       </div>
       <div class="topic-body" id="body-${t.id}">
-        <button class="btn btn-primary btn-sm" style="margin-bottom:14px" onclick="openInStudio(${t.id})">${ICONS.wand}Open in Script &amp; Carousel Studio</button>
-        <div class="stage-row">
-          ${STAGES.map(st => `
-            <div class="stage-chip ${d[st.key] ? 'done' : ''}" onclick="toggleStage(${t.id},'${st.key}')">
-              <span class="chk">${d[st.key] ? '✓' : ''}</span>${st.label}
-            </div>`).join('')}
-        </div>
-        <div class="field-label">Quick preview — full editing is in the Studio above</div>
+        <button class="btn btn-primary btn-sm" style="margin-bottom:14px" onclick="openInStudio(${t.id})">${ICONS.wand}Open in Studio</button>
         <div style="font-size:12px;color:var(--muted);line-height:1.6">
           Research: ${d.research ? d.research.slice(0,80)+'…' : '<em>not added yet</em>'}<br>
           Script: ${d.script ? d.script.slice(0,80)+'…' : '<em>not added yet</em>'}<br>
-          Carousel: ${d.carousel ? d.carousel.slice(0,80)+'…' : '<em>not added yet</em>'}
+          JSON: ${d.json ? 'ready' : '<em>not added yet</em>'}<br>
+          Captions: ${d.captions ? 'ready' : '<em>not added yet</em>'}<br>
+          Carousel: ${d.carousel ? 'ready' : '<em>not added yet</em>'}
         </div>
       </div>
     `;
