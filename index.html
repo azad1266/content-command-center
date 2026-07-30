@@ -634,19 +634,44 @@ const MCDONALDS_JSON = `[
   {"part":5,"duration":"7-8 seconds","generation_type":"EXTEND from Part 4 — do NOT restart Ingredients.","dialogue":"Lesson: apna product hi mat dekho — socho, kaunsa asset control de sakta hai। Follow karo।","b_roll":"None — stay on avatar for CTA.","motion_graphics":"FOLLOW FOR MORE"}
 ]`;
 
-const RESEARCH_TEMPLATE = `Do in-depth, fact-checked research on [COMPANY/FOUNDER NAME] for a business storytelling YouTube Short script. Structure your answer in these exact sections:
+const CATEGORY_ANGLES = {
+  "Business Collapse/Failure": "Also specifically dig into: the exact internal decision or moment that triggered the decline, any warnings that were ignored, what smarter competitors did differently at the same time, the human cost (layoffs, leadership exits), and the peak-vs-final numbers (valuation, revenue, market share).",
+  "Hidden Business Models": "Also specifically dig into: the visible product vs the real profit center, the actual revenue/profit breakdown by segment if it's public, who inside the company first spotted this model, and how rivals who missed it suffered by comparison.",
+  "Founder Psychology & Decisions": "Also specifically dig into: the exact high-pressure moment and what alternatives the founder could have chosen instead, the founder's own words about the decision (interviews, memoirs, letters), and the immediate vs long-term consequences of that choice.",
+  "Marketing Psychology Tricks": "Also specifically dig into: the formal psychological principle at play if one exists (scarcity, social proof, anchoring, loss aversion, etc.), real campaign data or before/after results, and one brand that used the same trick and got it wrong.",
+  "Company Rivalries & Wars": "Also specifically dig into: how the rivalry actually started, 3-4 key escalation moments with dates on both sides, who is winning today by hard current numbers, and any leaked memos, lawsuits, or public jabs between the companies.",
+  "Pricing Psychology": "Also specifically dig into: the exact pricing mechanism and the consumer-behavior research behind why it works, real before/after revenue or conversion numbers, and how this compares to a competitor who prices differently.",
+  "Indian Business Stories": "Also specifically dig into: India-specific market context (regulation, competition, consumer behavior), exact funding/valuation numbers in both INR and USD, and how this story compares to a similar global company.",
+  "Global Tech Secrets": "Also specifically dig into: the specific internal culture, process, or policy detail most outsiders don't know, the engineer or executive credited with it, and the measurable business impact it had.",
+  "Scams & Frauds": "Also specifically dig into: exactly how the fraud mechanism worked step by step, the red flags that were missed or ignored, who exposed it and how, the legal outcome/sentence, and the total money involved.",
+  "Underdog/Comeback Stories": "Also specifically dig into: the exact lowest point with specific detail, the single decision or lucky break that changed the trajectory, and the hard numbers of the eventual comeback (valuation, users, revenue)."
+};
 
-1. TIMELINE — Key dates and events in chronological order.
-2. THE HOOK — One surprising, counter-intuitive fact most people don't know.
-3. THE HIDDEN STRATEGY/STORY — The actual decision/strategy and why.
-4. VERIFIED NUMBERS — Key facts with sources. Flag anything disputed.
-5. QUOTES — Direct quotes from founders/executives (with source).
-6. ACTIONABLE LESSON — One clear, practical takeaway.
-7. SOURCES — All sources with links.
+function buildResearchPrompt(topic) {
+  const title = typeof topic === 'string' ? topic : topic.title;
+  const cat = typeof topic === 'string' ? '' : topic.cat;
+  const angle = CATEGORY_ANGLES[cat] || '';
+  return `You are an expert business journalist and investigative researcher preparing source material for a Hindi YouTube Shorts business-storytelling channel. Research this topic in EXTREME depth — go beyond Wikipedia-level facts and find the specific, lesser-known details that make the story feel like insider knowledge, not something everyone has already heard.
 
-Also suggest a punchy 1-line Hinglish hook/title for a YouTube Short based on this story.
+TOPIC: ${title}${cat ? `\nCATEGORY: ${cat}` : ''}
+${angle ? `\n${angle}\n` : ''}
+Structure your answer in these exact sections:
 
-Keep the tone factual and neutral, avoid unverified rumors — if disputed, say so explicitly.`;
+1. TIMELINE — Key dates and events in chronological order, as specific as possible (exact months/years, not just "in the 2000s").
+2. THE HOOK — The single most surprising, counter-intuitive fact most people don't know. This becomes the first 3 seconds of the video, so it must genuinely shock or spark curiosity.
+3. THE HIDDEN STORY — The real decision, strategy, or mechanism behind the headline, explained simply enough for a 60-second video without dumbing down the facts.
+4. VERIFIED NUMBERS — Every hard number relevant to the story (revenue, valuation, dates, percentages) with its source. Explicitly flag anything disputed, rumored, or unverified.
+5. QUOTES — Direct quotes from founders/executives/insiders, with who said it and where.
+6. ACTIONABLE LESSON — One clear, practical takeaway a small business owner or professional could apply.
+7. SOURCES — Every source used, with links.
+
+Also suggest a punchy 1-line Hinglish hook/title for a YouTube Short based on this story (curiosity or shock, under 10 words).
+
+Keep the tone factual and neutral. If any part of the story is disputed or unverifiable, say so explicitly rather than presenting rumor as fact.
+
+(Pro tip: turn on Focus/Pro mode in Perplexity before running this for deeper, more reliable results.)`;
+}
+const RESEARCH_TEMPLATE = buildResearchPrompt({title: '[COMPANY/FOUNDER NAME]', cat: ''});
 
 const JSON_TEMPLATE = `{
   "part": "[1-5]",
@@ -744,8 +769,6 @@ async function toggleStage(tid, key) {
 }
 window.toggleStage = toggleStage;
 
-function buildResearchPrompt(title) { return RESEARCH_TEMPLATE.replace('[COMPANY/FOUNDER NAME]', title); }
-
 function copyPlain(text) {
   navigator.clipboard.writeText(text).catch(() => {
     const ta = document.createElement('textarea');
@@ -756,7 +779,7 @@ function copyPlain(text) {
 
 window.copyTopicResearch = function(tid) {
   const t = TOPICS.find(x => x.id === Number(tid));
-  if (t) copyPlain(buildResearchPrompt(t.title));
+  if (t) copyPlain(buildResearchPrompt(t));
 }
 window.copyIdeaAt = function(kind, idx) {
   const arr = kind === 'reels' ? REELS_IDEAS : CAROUSEL_IDEAS;
@@ -798,7 +821,7 @@ window.generateScript = function(tid, btn) {
     const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.research||'').trim()) { alert('Pehle Research tab me research paste karo.'); return; }
-    const prompt = `You are a scriptwriter for a Hindi business-storytelling YouTube Shorts channel. Using the research below, write a punchy 5-part spoken script in Hindi/Hinglish (natural conversational tone), formatted exactly like this example:\n\n${MCDONALDS_SCRIPT}\n\nNow write a new script in the same format for:\nTopic: ${title}\nResearch:\n${d.research}`;
+    const prompt = `You are a professional short-form scriptwriter for a Hindi business-storytelling YouTube Shorts channel that uses a single AI avatar talking to camera. Your scripts are known for: a hook so strong viewers can't skip in the first 2 seconds, simple spoken Hindi/Hinglish (no bookish/formal Hindi, no corporate jargon), short punchy sentences built for voiceover pacing, and a satisfying "aha" reveal in the middle.\n\nUsing the research below, write a NEW 5-part script for this topic, in EXACTLY the same format, tone, and part-lengths as this reference example:\n\n${MCDONALDS_SCRIPT}\n\nRules:\n- PART 1 must hook with the single most surprising fact from the research — no throat-clearing, no "aaj hum baat karenge".\n- PART 2-3 must reveal the hidden mechanism/decision, building curiosity toward the reveal.\n- PART 4 should include a real quote from the research if one exists.\n- PART 5 must end with one clear, practical lesson plus a natural "follow karo" call to action.\n- Keep total spoken length to roughly 45-60 seconds across the 5 short parts, matching the example's pacing.\n- Use ONLY facts present in the research below — never invent numbers, dates, or quotes.\n\nTopic: ${title}\nCategory: ${topic ? topic.cat : ''}\nResearch:\n${d.research}`;
     const out = await callGemini(prompt);
     if (out) { await updateField(tid, 'script', out); await setDoc(doc(db,'topics',String(tid)), {doneScript:true}, {merge:true}); }
   });
@@ -811,7 +834,7 @@ window.generateJson = function(tid, btn) {
     const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.script||'').trim()) { alert('Pehle Script tab me script ready karo.'); return; }
-    const prompt = `Convert this Hindi voiceover script into a Google Flow scene-by-scene JSON array, one object per script part, in EXACTLY this format:\n\n${MCDONALDS_JSON}\n\nRules: part 1 must say "FRESH generation — attach Ingredients avatar reference image here", every other part must say "EXTEND from Part N — do NOT restart Ingredients." Keep dialogue text identical to the script. Output ONLY the JSON array, no extra commentary.\n\nTopic: ${title}\nScript:\n${d.script}`;
+    const prompt = `You are a video director breaking a finalized Hindi voiceover script into a scene-by-scene Google Flow generation plan for a single locked AI avatar. Convert the script below into a JSON array, one object per script part, in EXACTLY this format and field structure:\n\n${MCDONALDS_JSON}\n\nRules:\n- Part 1 "generation_type" must say "FRESH generation — attach Ingredients avatar reference image here". Every other part must say "EXTEND from Part N — do NOT restart Ingredients."\n- "dialogue" must be copied EXACTLY from the script for that part — do not paraphrase or shorten it.\n- "b_roll" must be a specific, real-world visual tied to what's actually being said in that part (not a generic placeholder) — no humans in b-roll.\n- "motion_graphics" should surface the single most important number, name, or phrase from that part's dialogue.\n- Keep "negative_prompt" identical across all parts: no women, no other men, no extra people, no extra presenter, no face except the uploaded avatar, no distorted hands.\n- Output ONLY the JSON array, no markdown fences, no extra commentary.\n\nTopic: ${title}\nScript:\n${d.script}`;
     const out = await callGemini(prompt);
     if (out) { await updateField(tid, 'json', out); await setDoc(doc(db,'topics',String(tid)), {doneJson:true}, {merge:true}); }
   });
@@ -824,7 +847,7 @@ window.generateCaptions = function(tid, btn) {
     const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.script||'').trim() && !(d.research||'').trim()) { alert('Pehle Research ya Script bharo.'); return; }
-    const prompt = `Based on this business storytelling video, write publish-ready copy for three platforms. Format exactly like this with clear headers:\n\nYOUTUBE SHORTS:\nTitle: ...\nDescription: ...\nTags: tag1, tag2, tag3...\n\nINSTAGRAM:\nCaption: ...\nHashtags: #tag1 #tag2 ...\n\nTWITTER / X:\nPost: ...\n\nUse punchy Hindi/Hinglish for titles and captions where natural. Keep hashtags relevant to AI/business/startup niche.\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
+    const prompt = `You are a social media strategist for a Hindi business-storytelling channel. Based on the research/script below, write scroll-stopping, publish-ready copy for three platforms. Use real hook-writing principles — curiosity gaps, numbers, contrast, pattern interrupts — and avoid generic, obviously-AI-sounding phrasing.\n\nFormat exactly like this with clear headers:\n\nYOUTUBE SHORTS:\nTitle: (under 60 characters, curiosity-driven, ideally with a number or surprising claim)\nDescription: (2-3 lines — restate the core hook, then a soft CTA to follow for more business stories)\nTags: 15-20 comma-separated tags, mixing broad tags (business, entrepreneur, startup) with specific ones (the company/person name, the category)\n\nINSTAGRAM:\nCaption: (a strong first line that works even if truncated, 3-5 short lines total, Hindi/Hinglish, ending with a question or CTA that invites comments)\nHashtags: 15-20 hashtags mixing niche-specific (#businessstorytelling #startupstories) and broader-reach tags — no spammy or banned tags\n\nTWITTER / X:\nPost: (under 280 characters, one punchy core fact or hook, written to work as a thread-starter)\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
     const out = await callGemini(prompt);
     if (out) { await updateField(tid, 'captions', out); }
   });
@@ -904,7 +927,7 @@ function panelHtml(tab, t, d) {
     <div class="studio-panel-title">${ICONS.research} Step 1 — Research</div>
     <div class="studio-panel-desc">Neeche ye poora prompt is topic ke liye ready hai — Perplexity.ai kholo, paste karo, jo jawab aaye wo uske neeche wale box me paste kar do. Ye research agle steps (Script, Captions, Carousel) sabme automatically use hogi.</div>
     <div class="field-label">Research Prompt (is topic ke liye ready-made)</div>
-    <textarea readonly onclick="this.select()" style="min-height:130px;background:#fafbfc">${buildResearchPrompt(t.title)}</textarea>
+    <textarea readonly onclick="this.select()" style="min-height:130px;background:#fafbfc">${buildResearchPrompt(t)}</textarea>
     <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="copyTopicResearch(${t.id})">${ICONS.copy}Copy Research Prompt</button>
     <div class="field-label" style="margin-top:18px">Perplexity Ka Jawab Yahan Paste Karo</div>
     <textarea onblur="updateField(${t.id},'research',this.value)" placeholder="Perplexity ka jawab yahan paste karo...">${d.research||''}</textarea>
