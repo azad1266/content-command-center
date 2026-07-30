@@ -5,148 +5,381 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Content Command Center</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#d9480f">
+<meta name="theme-color" content="#141625">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
     color-scheme: light;
-    --bg: #f7f7f8;
+    --bg: #f4f5f8;
     --card: #ffffff;
-    --border: #e5e5e8;
-    --text: #1a1a1e;
-    --muted: #6b6b73;
+    --border: #e7e8ee;
+    --text: #16182a;
+    --muted: #6b6f85;
     --accent: #d9480f;
+    --accent-dark: #b8380a;
     --accent-soft: #fff1e9;
-    --green: #1a7f37;
-    --green-soft: #e6f7ea;
-    --blue: #1958c1;
-    --blue-soft: #e8f0fe;
-    --purple: #6f42c1;
-    --purple-soft: #f2ecfb;
-    --gray-soft: #eeeef0;
+    --navy: #141625;
+    --navy-soft: #1e2136;
+    --green: #1a8f5c;
+    --green-soft: #e5f6ee;
+    --blue: #2563eb;
+    --blue-soft: #eaf0fe;
+    --purple: #7c3aed;
+    --purple-soft: #f2ecfe;
+    --amber: #b8860b;
+    --amber-soft: #fbf3de;
+    --pink: #c2255c;
+    --pink-soft: #fbe9f0;
+    --gray-soft: #eef0f4;
+    --shadow: 0 1px 2px rgba(20,22,37,.04), 0 4px 16px rgba(20,22,37,.06);
+    --shadow-lg: 0 8px 24px rgba(20,22,37,.10), 0 2px 6px rgba(20,22,37,.06);
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
-    padding: 24px;
+    -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1000px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
-  .sync-status { font-size: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
-  .dot.live { background: var(--green); }
-  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  a { color: inherit; }
+
+  .navbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--navy);
+    color: #fff;
+    padding: 0 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 62px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.15);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15.5px; letter-spacing: -0.01em; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #ff7a3d);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; color: #fff;
+  }
+  .brand .tag { font-weight: 500; color: rgba(255,255,255,.45); font-size: 12px; margin-left: 6px; }
+  .navlinks { display: flex; gap: 4px; align-items: center; }
+  .navlinks a {
+    text-decoration: none; color: rgba(255,255,255,.72); font-size: 13.5px; font-weight: 500;
+    padding: 8px 14px; border-radius: 7px; transition: all .15s;
+  }
+  .navlinks a:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .icon-btn {
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: #fff;
+    width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,.18); }
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+  .nav-sync { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,.6); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #6b6f85; flex-shrink: 0; }
+  .dot.live { background: #34d399; box-shadow: 0 0 0 3px rgba(52,211,153,.2); }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  .settings-panel {
+    display: none; max-width: 1080px; margin: 0 auto; padding: 14px 24px 0;
+  }
+  .settings-panel.open { display: block; }
+  .settings-inner {
+    background: var(--navy-soft); color: #fff; border-radius: 12px; padding: 16px 20px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .settings-inner input {
+    flex: 1; min-width: 260px; padding: 9px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.08); color: #fff; font-size: 13px; font-family: inherit;
+  }
+  .settings-inner input::placeholder { color: rgba(255,255,255,.4); }
+  .settings-note { font-size: 11.5px; color: rgba(255,255,255,.5); width: 100%; }
+
+  .page-head { margin-bottom: 28px; }
+  .eyebrow { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  h1 { font-size: 26px; margin: 0 0 6px; font-weight: 800; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 14px; }
+
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 28px; }
   .stat {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    padding: 10px 14px; font-size: 13px; flex: 1; min-width: 110px;
-  }
-  .stat b { display: block; font-size: 20px; }
-  .card {
     background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 16px 18px; margin-bottom: 16px;
+    padding: 14px 16px; box-shadow: var(--shadow); border-top: 3px solid var(--gray-soft);
   }
-  .card h2 { font-size: 15px; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
-  details { margin-bottom: 8px; }
-  summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
+  .stat.s-notstarted { border-top-color: #cbd0dc; }
+  .stat.s-research { border-top-color: var(--amber); }
+  .stat.s-script { border-top-color: var(--blue); }
+  .stat.s-json { border-top-color: var(--purple); }
+  .stat.s-production { border-top-color: var(--accent); }
+  .stat.s-posted { border-top-color: var(--green); }
+  .stat b { display: block; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  .stat span { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 24px; margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .card h2 { font-size: 15.5px; margin: 0 0 4px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .card .card-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+
+  .workflow { display: flex; align-items: flex-start; gap: 0; margin-top: 4px; overflow-x: auto; padding-bottom: 4px; }
+  .wf-step { display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 108px; position: relative; }
+  .wf-step .circle {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--gray-soft); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+    border: 2px solid var(--border); margin-bottom: 8px;
+  }
+  .wf-step .wf-title { font-size: 12px; font-weight: 700; }
+  .wf-step .wf-desc { font-size: 10.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; padding: 0 4px; }
+  .wf-line { flex: 1; height: 2px; background: var(--border); margin-top: 19px; min-width: 20px; }
+
+  .pick-box {
+    background: linear-gradient(135deg, var(--navy), #262a45);
+    border-radius: 14px; padding: 22px 26px; margin-bottom: 20px; color: #fff;
+    box-shadow: var(--shadow-lg); position: relative; overflow: hidden;
+  }
+  .pick-box::before {
+    content: ''; position: absolute; right: -60px; top: -60px; width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(217,72,15,.35), transparent 70%);
+  }
+  .pick-eyebrow { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #ff9d5c; margin-bottom: 8px; }
+  .pick-title { font-size: 19px; font-weight: 700; margin: 4px 0 16px; max-width: 640px; line-height: 1.4; }
+  .pick-actions { display: flex; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .btn {
+    border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s; font-family: inherit;
+  }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-ghost { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.18); }
+  .btn-ghost:hover { background: rgba(255,255,255,.18); }
+  .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+  .btn-outline:hover { background: var(--gray-soft); }
+  .btn-sm { padding: 6px 11px; font-size: 12px; }
+  .btn-ai {
+    background: var(--purple-soft); color: var(--purple); border: 1px solid #e3d6fc;
+  }
+  .btn-ai:hover { background: #e9defb; }
+
+  details { margin-bottom: 6px; border: 1px solid var(--border); border-radius: 10px; padding: 0; overflow: hidden; }
+  summary {
+    cursor: pointer; font-weight: 600; font-size: 13.5px; padding: 12px 14px;
+    background: #fafafb; list-style: none; display: flex; align-items: center; gap: 8px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: '▸'; color: var(--muted); font-size: 11px; transition: transform .15s; }
+  details[open] summary::before { transform: rotate(90deg); }
+  details .inner { padding: 12px 14px 14px; }
   textarea.template {
-    width: 100%; min-height: 160px; font-family: ui-monospace, monospace; font-size: 12px;
-    border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #fafafa;
-    resize: vertical;
+    width: 100%; min-height: 150px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #fafafb;
+    resize: vertical; color: var(--text);
   }
   .copy-btn {
-    background: var(--accent); color: white; border: none; border-radius: 6px;
-    padding: 6px 12px; font-size: 12px; cursor: pointer; margin-top: 6px;
+    background: var(--navy); color: #fff; border: none; border-radius: 6px;
+    padding: 7px 13px; font-size: 12px; cursor: pointer; margin-top: 8px; font-weight: 600;
   }
-  .copy-btn:hover { opacity: 0.9; }
-  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .copy-btn:hover { background: var(--navy-soft); }
+
+  .idea-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .idea-card {
+    border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; background: #fafbfc;
+  }
+  .idea-card .idea-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .idea-card .idea-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+  .idea-card .idea-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px;
+    padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 600;
+  }
+  .idea-card .idea-btn:hover { background: var(--gray-soft); color: var(--text); }
+  @media (max-width: 720px) { .idea-grid { grid-template-columns: 1fr; } }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .controls input, .controls select {
-    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;
-    background: var(--card); color: var(--text);
+    padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;
+    background: var(--card); color: var(--text); font-family: inherit;
   }
-  .controls input { flex: 1; min-width: 180px; }
+  .controls input { flex: 1; min-width: 200px; }
+
   .topic {
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    margin-bottom: 8px; overflow: hidden;
+    border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 8px; overflow: hidden; transition: box-shadow .15s;
   }
+  .topic:hover { box-shadow: var(--shadow); }
   .topic-head {
-    display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer;
+    display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; background: var(--card);
   }
-  .topic-head:hover { background: #fafafa; }
-  .topic-num { color: var(--muted); font-size: 12px; width: 28px; flex-shrink: 0; }
-  .topic-title { flex: 1; font-size: 13.5px; }
-  .badge {
-    font-size: 11px; padding: 3px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-  }
-  .badge.cat { background: var(--gray-soft); color: var(--muted); }
-  .badge.status-notstarted { background: var(--gray-soft); color: var(--muted); }
-  .badge.status-scriptready { background: var(--blue-soft); color: var(--blue); }
-  .badge.status-jsonready { background: var(--purple-soft); color: var(--purple); }
-  .badge.status-inproduction { background: var(--accent-soft); color: var(--accent); }
-  .badge.status-posted { background: var(--green-soft); color: var(--green); }
-  .topic-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
+  .topic-head:hover { background: #fafafb; }
+  .topic-num { color: var(--muted); font-size: 11.5px; font-weight: 600; width: 26px; flex-shrink: 0; }
+  .topic-title { flex: 1; font-size: 13.5px; font-weight: 500; }
+  .progress-track { display: flex; gap: 2px; width: 84px; flex-shrink: 0; }
+  .progress-track span { height: 5px; flex: 1; border-radius: 3px; background: var(--gray-soft); }
+  .progress-track span.on { background: var(--green); }
+  .badge { font-size: 10.5px; padding: 3px 9px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; font-weight: 600; }
+  .badge.cat { background: var(--gray-soft); color: var(--muted); font-weight: 500; }
+  .badge.st-notstarted { background: var(--gray-soft); color: var(--muted); }
+  .badge.st-research { background: var(--amber-soft); color: var(--amber); }
+  .badge.st-script { background: var(--blue-soft); color: var(--blue); }
+  .badge.st-json { background: var(--purple-soft); color: var(--purple); }
+  .badge.st-production { background: var(--accent-soft); color: var(--accent); }
+  .badge.st-posted { background: var(--green-soft); color: var(--green); }
+
+  .topic-body { display: none; padding: 16px; border-top: 1px solid var(--border); background: #fbfbfc; }
   .topic-body.open { display: block; }
-  .field-label { font-size: 12px; font-weight: 600; margin: 12px 0 4px; color: var(--muted); }
+
+  .stage-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .stage-chip {
+    display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: #fff; font-size: 12px; font-weight: 600;
+    cursor: pointer; color: var(--muted); user-select: none; transition: all .12s;
+  }
+  .stage-chip .chk {
+    width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 9px; flex-shrink: 0;
+  }
+  .stage-chip.done { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+  .stage-chip.done .chk { background: var(--green); border-color: var(--green); color: #fff; }
+
+  .field-label {
+    font-size: 11.5px; font-weight: 700; margin: 14px 0 5px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .03em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .field-label .spacer { margin-left: auto; display: flex; gap: 6px; }
   .topic-body textarea {
     width: 100%; min-height: 90px; font-size: 12.5px; border: 1px solid var(--border);
-    border-radius: 8px; padding: 8px; font-family: ui-monospace, monospace; resize: vertical;
-    background: #fafafa;
+    border-radius: 8px; padding: 10px; font-family: ui-monospace, "SF Mono", Menlo, monospace; resize: vertical;
+    background: #fff; color: var(--text);
   }
-  .status-select { margin-top: 10px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 12.5px; }
-  .pick-box {
-    background: linear-gradient(135deg, var(--accent-soft), #fff);
-    border: 1px solid #f3c8ab; border-radius: 12px; padding: 16px 18px; margin-bottom: 16px;
+  .link-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .link-row input {
+    flex: 1; min-width: 180px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12.5px; font-family: inherit; background: #fff; color: var(--text);
   }
-  .pick-box h2 { margin: 0 0 6px; font-size: 15px; }
-  .pick-title { font-size: 16px; font-weight: 700; margin: 6px 0; }
-  .pick-btn {
-    background: var(--accent); color: white; border: none; border-radius: 8px;
-    padding: 8px 14px; font-size: 13px; cursor: pointer; margin-top: 8px;
-  }
-  .saved-tag { font-size: 11px; color: var(--green); margin-left: 8px; opacity: 0; transition: opacity 0.3s; }
+  .link-row label { font-size: 10.5px; color: var(--muted); display: block; margin-bottom: 3px; font-weight: 600; }
+  .link-item { flex: 1; min-width: 180px; }
+
+  .saved-tag { font-size: 10.5px; color: var(--green); opacity: 0; transition: opacity 0.3s; font-weight: 700; text-transform: none; letter-spacing: 0; }
   .saved-tag.show { opacity: 1; }
+
+  footer.foot { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 0 8px; }
+
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .navlinks { display: none; }
+  }
 </style>
 </head>
 <body>
+
+<div class="navbar">
+  <div class="brand">
+    <div class="mark">CC</div>
+    Content Command Center
+    <span class="tag">Business Storytelling Studio</span>
+  </div>
+  <div class="navlinks">
+    <a href="#overview">Overview</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#ideas">Idea Banks</a>
+    <a href="#templates">Templates</a>
+    <a href="#topics">Topics</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-sync"><span class="dot" id="syncDot"></span><span id="syncText">Connecting...</span></div>
+    <button class="icon-btn" title="Settings" onclick="toggleSettings()">&#9881;</button>
+  </div>
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-inner">
+    <input type="password" id="geminiKeyInput" placeholder="Paste your free Gemini API key here (from aistudio.google.com/apikey)">
+    <button class="btn btn-primary btn-sm" onclick="saveGeminiKey()">Save key</button>
+    <span class="settings-note">Key sirf is browser ke localStorage me save hota hai — GitHub par kabhi upload nahi hota. Isse "Generate with AI" buttons Script aur Carousel ke liye kaam karte hain.</span>
+  </div>
+</div>
+
 <div class="wrap">
-  <h1>Content Command Center</h1>
-  <div class="sub">Business Storytelling + AI Tools channel &middot; Reels, Shorts &amp; Carousels tracker</div>
-  <div class="sync-status"><span class="dot" id="syncDot"></span><span id="syncText">Connecting...</span></div>
+
+  <div class="page-head" id="overview">
+    <div class="eyebrow">Production Dashboard</div>
+    <h1>Content Command Center</h1>
+    <div class="sub">Business Storytelling + AI Tools channel &middot; Reels, Shorts &amp; Carousels tracker</div>
+  </div>
 
   <div class="stats" id="stats"></div>
 
   <div class="pick-box">
-    <h2>Today's Pick</h2>
+    <div class="pick-eyebrow">Today's Pick</div>
     <div class="pick-title" id="pickTitle">&mdash;</div>
-    <button class="pick-btn" onclick="pickRandom()">Suggest New Topic</button>
+    <div class="pick-actions">
+      <button class="btn btn-primary" onclick="pickRandom()">Suggest New Topic</button>
+      <button class="btn btn-ghost" id="pickResearchBtn" onclick="copyPickResearch()">Copy Research Prompt</button>
+    </div>
+  </div>
+
+  <div class="card" id="pipeline">
+    <h2>Daily Production Workflow</h2>
+    <div class="card-sub">Every topic moves through these six stages, start to finish.</div>
+    <div class="workflow">
+      <div class="wf-step"><div class="circle">1</div><div class="wf-title">Research</div><div class="wf-desc">Run the Perplexity prompt for the topic</div></div>
+      <div class="wf-line"></div>
+      <div class="wf-step"><div class="circle">2</div><div class="wf-title">Script</div><div class="wf-desc">AI-generate the 5-part Hindi script</div></div>
+      <div class="wf-line"></div>
+      <div class="wf-step"><div class="circle">3</div><div class="wf-title">JSON</div><div class="wf-desc">Build Google Flow scene-by-scene prompts</div></div>
+      <div class="wf-line"></div>
+      <div class="wf-step"><div class="circle">4</div><div class="wf-title">Video</div><div class="wf-desc">Generate in Flow — Ingredients + Extend</div></div>
+      <div class="wf-line"></div>
+      <div class="wf-step"><div class="circle">5</div><div class="wf-title">Edited</div><div class="wf-desc">CapCut — music, SFX, captions</div></div>
+      <div class="wf-line"></div>
+      <div class="wf-step"><div class="circle">6</div><div class="wf-title">Posted</div><div class="wf-desc">Shorts + Reel + Carousel, links saved</div></div>
+    </div>
+  </div>
+
+  <div class="card" id="ideas">
+    <h2>Trending Reels Ideas</h2>
+    <div class="card-sub">Formats working right now in the business/education niche — adapt, don't copy directly.</div>
+    <div class="idea-grid" id="reelsIdeas"></div>
   </div>
 
   <div class="card">
+    <h2>Carousel Ideas Bank</h2>
+    <div class="card-sub">Viral carousel formats for AI/business content, with an image-style prompt for each.</div>
+    <div class="idea-grid" id="carouselIdeas"></div>
+  </div>
+
+  <div class="card" id="templates">
     <h2>Reusable Templates</h2>
+    <div class="card-sub">Copy-paste prompts used at every stage of production.</div>
     <details>
       <summary>Perplexity Research Prompt</summary>
-      <textarea class="template" readonly id="tplResearch"></textarea>
-      <button class="copy-btn" onclick="copyText('tplResearch')">Copy</button>
+      <div class="inner">
+        <textarea class="template" readonly id="tplResearch"></textarea>
+        <button class="copy-btn" onclick="copyText('tplResearch')">Copy</button>
+      </div>
     </details>
     <details>
-      <summary>Google Flow &mdash; Scene JSON Template</summary>
-      <textarea class="template" readonly id="tplJson"></textarea>
-      <button class="copy-btn" onclick="copyText('tplJson')">Copy</button>
+      <summary>Google Flow — Scene JSON Template</summary>
+      <div class="inner">
+        <textarea class="template" readonly id="tplJson"></textarea>
+        <button class="copy-btn" onclick="copyText('tplJson')">Copy</button>
+      </div>
     </details>
   </div>
 
-  <div class="card">
-    <h2>100 Topics &mdash; Content Library</h2>
+  <div class="card" id="topics">
+    <h2>100 Topics — Content Library</h2>
+    <div class="card-sub">Click a topic to open its full production pipeline.</div>
     <div class="controls">
       <input type="text" id="search" placeholder="Search topic..." oninput="render()">
       <select id="catFilter" onchange="render()"><option value="">All Categories</option></select>
       <select id="statusFilter" onchange="render()">
-        <option value="">All Status</option>
+        <option value="">All Stages</option>
         <option value="Not Started">Not Started</option>
+        <option value="Researching">Researching</option>
         <option value="Script Ready">Script Ready</option>
         <option value="JSON Ready">JSON Ready</option>
         <option value="In Production">In Production</option>
@@ -155,6 +388,8 @@
     </div>
     <div id="list"></div>
   </div>
+
+  <footer class="foot">Built for Aditya &middot; 100% free stack &middot; GitHub Pages + Firestore + Gemini</footer>
 </div>
 
 <script type="module">
@@ -298,6 +533,33 @@ RAW_TOPICS.forEach(([cat, titles]) => {
   titles.forEach(title => { TOPICS.push({id: id++, cat, title}); });
 });
 
+const STAGES = [
+  {key: 'doneResearch', label: 'Research'},
+  {key: 'doneScript', label: 'Script'},
+  {key: 'doneJson', label: 'JSON'},
+  {key: 'doneVideo', label: 'Video'},
+  {key: 'doneEdited', label: 'Edited'},
+  {key: 'donePosted', label: 'Posted'}
+];
+
+const REELS_IDEAS = [
+  {title: 'Raw single-take', desc: '2026 me over-polished content se zyada raw, ek-take, seedha camera pe baat karna chal raha hai. Script ke Hook line ko ekdum casual tone me bolo.'},
+  {title: 'Before / After reveal', desc: '"Pehle X tha, phir ye ek decision liya, ab Y hai" — result pehle dikhao, phir kahani reveal karo.'},
+  {title: 'Slideshow narrative', desc: 'Screenshots/quotes/numbers ki sequence jo khud ek chhoti kahani sunaye — single clip se zyada retain karta hai.'},
+  {title: 'Trending audio + twist', desc: 'Trending sound lo, seedha copy mat karo — apni business story pe adapt karke apna angle do.'},
+  {title: 'Searchable hook + caption', desc: 'Pehle 1 second me exact keyword bolo jo log search karte hain — caption me bhi wahi keyword daalo.'},
+  {title: 'Behind-the-scenes', desc: 'Research/script/Flow video banane ka process dikhao — process content khud engaging hota hai.'}
+];
+
+const CAROUSEL_IDEAS = [
+  {title: 'Business breakdown (Hormozi-style)', desc: 'Slide 1: ek strong claim/result. Slides 2-9: step-by-step reasoning, ek idea per slide. Last slide: lesson + follow CTA.'},
+  {title: 'AIDA 10-slide arc', desc: 'Attention (hook) → Interest (context) → Desire (kyun matter karta hai) → Action (CTA) — poore carousel me spread karo.'},
+  {title: 'Roadmap breakdown', desc: 'Complex topic ko simple numbered steps me todo, apna take bhi mix karo.'},
+  {title: 'Quote carousel', desc: 'Story ke 5-6 powerful quotes, ek per slide, bold high-contrast typography.'},
+  {title: 'Listicle', desc: '"5 companies jinhone ye kiya" style — ek company/example per slide.'},
+  {title: 'Step-by-step tutorial', desc: 'Story ke lesson se ek actionable how-to nikaalo, slides me steps todo.'}
+];
+
 const MCDONALDS_SCRIPT = `SHORT 1 — "McDonald's Asli Business Burger Nahi, Real Estate Hai" (5-part merged version)
 
 PART 1 (Hook + Setup):
@@ -358,12 +620,13 @@ const JSON_TEMPLATE = `{
 
 let topicsCache = {};
 let seeded = false;
+let currentPick = null;
 
 onSnapshot(topicsCol, (snapshot) => {
   snapshot.forEach(d => { topicsCache[d.id] = d.data(); });
   document.getElementById('syncDot').classList.add('live');
-  document.getElementById('syncText').textContent = 'Synced live — updates appear on every device';
-  if (!seeded) { seedIfNeeded(); seeded = true; }
+  document.getElementById('syncText').textContent = 'Synced live';
+  if (!seeded) { seedIfNeeded(); seeded = true; if (!currentPick) pickRandom(); }
   render();
 }, (err) => {
   document.getElementById('syncText').textContent = 'Connection issue: ' + err.message;
@@ -371,40 +634,151 @@ onSnapshot(topicsCol, (snapshot) => {
 
 async function seedIfNeeded() {
   if (!topicsCache['11']) {
-    await setDoc(doc(db, 'topics', '11'), {status: 'In Production', script: MCDONALDS_SCRIPT, json: MCDONALDS_JSON});
+    await setDoc(doc(db, 'topics', '11'), {
+      script: MCDONALDS_SCRIPT, json: MCDONALDS_JSON,
+      doneResearch: true, doneScript: true, doneJson: true, doneVideo: false, doneEdited: false, donePosted: false
+    });
   }
 }
 
-function getData(tid) {
-  return topicsCache[String(tid)] || {status: 'Not Started', script: '', json: ''};
+function getData(tid) { return topicsCache[String(tid)] || {}; }
+
+function stageOf(d) {
+  if (d.donePosted) return 'Posted';
+  if (d.doneVideo || d.doneEdited) return 'In Production';
+  if (d.doneJson) return 'JSON Ready';
+  if (d.doneScript) return 'Script Ready';
+  if (d.doneResearch) return 'Researching';
+  return 'Not Started';
+}
+function stageClass(s) {
+  return {'Not Started':'st-notstarted','Researching':'st-research','Script Ready':'st-script','JSON Ready':'st-json','In Production':'st-production','Posted':'st-posted'}[s];
+}
+function statClass(s) {
+  return {'Not Started':'s-notstarted','Researching':'s-research','Script Ready':'s-script','JSON Ready':'s-json','In Production':'s-production','Posted':'s-posted'}[s];
 }
 
 async function updateField(tid, field, value, btn) {
   await setDoc(doc(db, 'topics', String(tid)), {[field]: value}, {merge: true});
-  if (btn) {
-    btn.classList.add('show');
-    setTimeout(() => btn.classList.remove('show'), 1500);
-  }
+  if (btn) { btn.classList.add('show'); setTimeout(() => btn.classList.remove('show'), 1500); }
+}
+window.updateField = updateField;
+
+async function toggleStage(tid, key) {
+  const d = getData(tid);
+  await setDoc(doc(db, 'topics', String(tid)), {[key]: !d[key]}, {merge: true});
+}
+window.toggleStage = toggleStage;
+
+function buildResearchPrompt(title) { return RESEARCH_TEMPLATE.replace('[COMPANY/FOUNDER NAME]', title); }
+
+function copyPlain(text) {
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
 }
 
-function statusClass(s) {
-  return 'status-' + s.toLowerCase().replace(/\s/g, '');
+window.copyPickResearch = function() {
+  if (!currentPick) return;
+  copyPlain(buildResearchPrompt(currentPick.title));
+  const btn = document.getElementById('pickResearchBtn');
+  const orig = btn.textContent;
+  btn.textContent = 'Copied!';
+  setTimeout(() => { btn.textContent = orig; }, 1500);
+}
+
+window.copyTopicResearch = function(tid, title) { copyPlain(buildResearchPrompt(title)); }
+
+window.copyIdea = function(title, desc) { copyPlain(title + ' — ' + desc); }
+
+// Settings / Gemini key
+window.toggleSettings = function() {
+  document.getElementById('settingsPanel').classList.toggle('open');
+}
+window.saveGeminiKey = function() {
+  const v = document.getElementById('geminiKeyInput').value.trim();
+  if (v) { localStorage.setItem('geminiKey', v); alert('Key saved on this device.'); }
+}
+const savedKey = localStorage.getItem('geminiKey');
+if (savedKey) document.getElementById('geminiKeyInput').value = savedKey;
+
+async function callGemini(prompt) {
+  const key = localStorage.getItem('geminiKey');
+  if (!key) { alert('Pehle Settings (gear icon) me apna free Gemini API key add karo.'); return null; }
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({contents: [{parts: [{text: prompt}]}]})
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error('Gemini error: ' + t.slice(0,200)); }
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+window.generateScript = async function(tid, title, btn) {
+  const d = getData(tid);
+  const research = d.research || '';
+  if (!research.trim()) { alert('Pehle Research Notes me kuchh paste karo.'); return; }
+  const orig = btn.textContent; btn.textContent = 'Generating...'; btn.disabled = true;
+  try {
+    const prompt = `You are a scriptwriter for a Hindi business-storytelling YouTube Shorts channel. Using the research below, write a punchy 5-part spoken script in Hindi/Hinglish (natural conversational tone, not textbook Hindi), formatted exactly like this example:\n\n${MCDONALDS_SCRIPT}\n\nNow write a new script in the same format for:\nTopic: ${title}\nResearch:\n${research}`;
+    const out = await callGemini(prompt);
+    if (out) {
+      const ta = document.querySelector('#body-' + tid + ' [data-field="script"]');
+      ta.value = out;
+      await updateField(tid, 'script', out);
+      await setDoc(doc(db, 'topics', String(tid)), {doneScript: true}, {merge: true});
+    }
+  } catch (e) { alert(e.message); }
+  btn.textContent = orig; btn.disabled = false;
+}
+
+window.generateCarousel = async function(tid, title, btn) {
+  const d = getData(tid);
+  const research = d.research || '';
+  const script = d.script || '';
+  if (!research.trim() && !script.trim()) { alert('Pehle Research ya Script me kuchh bharo.'); return; }
+  const orig = btn.textContent; btn.textContent = 'Generating...'; btn.disabled = true;
+  try {
+    const prompt = `Create an Instagram carousel for this business story, Hormozi-style: slide 1 is one strong claim or result as the hook, slides 2 through 9 walk through step-by-step reasoning (one idea per slide, short punchy Hindi/Hinglish text), final slide is the lesson plus a follow CTA. 8 to 10 slides total. For EACH slide also give a one-line background/visual image-generation prompt (dark minimal background, bold typography, no photos of people, professional editorial style, suitable for pasting into ChatGPT/Gemini image generation). Format as:\n\nSLIDE 1:\nText: ...\nImage prompt: ...\n\nSLIDE 2:\n...\n\nTopic: ${title}\nResearch:\n${research}\nScript:\n${script}`;
+    const out = await callGemini(prompt);
+    if (out) {
+      const ta = document.querySelector('#body-' + tid + ' [data-field="carousel"]');
+      ta.value = out;
+      await updateField(tid, 'carousel', out);
+    }
+  } catch (e) { alert(e.message); }
+  btn.textContent = orig; btn.disabled = false;
 }
 
 function renderStats() {
-  const counts = {'Not Started':0,'Script Ready':0,'JSON Ready':0,'In Production':0,'Posted':0};
-  TOPICS.forEach(t => { const d = getData(t.id); counts[d.status] = (counts[d.status]||0)+1; });
+  const counts = {'Not Started':0,'Researching':0,'Script Ready':0,'JSON Ready':0,'In Production':0,'Posted':0};
+  TOPICS.forEach(t => { const s = stageOf(getData(t.id)); counts[s] = (counts[s]||0)+1; });
   const el = document.getElementById('stats');
   el.innerHTML = Object.entries(counts).map(([k,v]) =>
-    `<div class="stat"><b>${v}</b>${k}</div>`).join('');
+    `<div class="stat ${statClass(k)}"><b>${v}</b><span>${k}</span></div>`).join('');
+}
+
+function renderIdeas() {
+  document.getElementById('reelsIdeas').innerHTML = REELS_IDEAS.map(i => `
+    <div class="idea-card">
+      <div class="idea-title">${i.title}</div>
+      <div class="idea-desc">${i.desc}</div>
+      <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.desc)})">Copy angle</button>
+    </div>`).join('');
+  document.getElementById('carouselIdeas').innerHTML = CAROUSEL_IDEAS.map(i => `
+    <div class="idea-card">
+      <div class="idea-title">${i.title}</div>
+      <div class="idea-desc">${i.desc}</div>
+      <button class="idea-btn" onclick="copyIdea(${JSON.stringify(i.title)}, ${JSON.stringify(i.desc)})">Copy angle</button>
+    </div>`).join('');
 }
 
 window.toggleTopic = function(tid) {
-  const body = document.getElementById('body-' + tid);
-  body.classList.toggle('open');
+  document.getElementById('body-' + tid).classList.toggle('open');
 }
-
-window.updateField = updateField;
 
 window.render = function render() {
   const search = document.getElementById('search').value.toLowerCase();
@@ -416,31 +790,57 @@ window.render = function render() {
 
   TOPICS.filter(t => {
     const d = getData(t.id);
+    const s = stageOf(d);
     if (search && !t.title.toLowerCase().includes(search)) return false;
     if (catF && t.cat !== catF) return false;
-    if (statusF && d.status !== statusF) return false;
+    if (statusF && s !== statusF) return false;
     return true;
   }).forEach(t => {
     const d = getData(t.id);
+    const s = stageOf(d);
     const div = document.createElement('div');
     div.className = 'topic';
+    const progressDots = STAGES.map(st => `<span class="${d[st.key] ? 'on' : ''}"></span>`).join('');
     div.innerHTML = `
       <div class="topic-head" onclick="toggleTopic(${t.id})">
         <span class="topic-num">#${t.id}</span>
         <span class="topic-title">${t.title}</span>
         <span class="badge cat">${t.cat}</span>
-        <span class="badge ${statusClass(d.status)}">${d.status}</span>
+        <div class="progress-track">${progressDots}</div>
+        <span class="badge ${stageClass(s)}">${s}</span>
       </div>
       <div class="topic-body" id="body-${t.id}">
-        <div class="field-label">Status</div>
-        <select class="status-select" onchange="updateField(${t.id},'status',this.value)">
-          ${['Not Started','Script Ready','JSON Ready','In Production','Posted'].map(s =>
-            `<option value="${s}" ${d.status===s?'selected':''}>${s}</option>`).join('')}
-        </select>
-        <div class="field-label">Script <span class="saved-tag">Saved</span></div>
-        <textarea onblur="updateField(${t.id},'script',this.value,this.previousElementSibling)" placeholder="Paste or write the script here...">${d.script||''}</textarea>
+        <div class="stage-row">
+          ${STAGES.map(st => `
+            <div class="stage-chip ${d[st.key] ? 'done' : ''}" onclick="toggleStage(${t.id},'${st.key}')">
+              <span class="chk">${d[st.key] ? '✓' : ''}</span>${st.label}
+            </div>`).join('')}
+        </div>
+
+        <div class="field-label">Research Notes <span class="saved-tag">Saved</span>
+          <span class="spacer"><button class="copy-btn" style="margin:0;padding:4px 9px;" onclick="copyTopicResearch(${t.id}, ${JSON.stringify(t.title)})">Copy Research Prompt</button></span>
+        </div>
+        <textarea data-field="research" onblur="updateField(${t.id},'research',this.value,this.parentElement.querySelector('.saved-tag'))" placeholder="Paste Perplexity research output here...">${d.research||''}</textarea>
+
+        <div class="field-label">Script <span class="saved-tag">Saved</span>
+          <span class="spacer"><button class="btn btn-ai btn-sm" onclick="generateScript(${t.id}, ${JSON.stringify(t.title)}, this)">Generate with AI</button></span>
+        </div>
+        <textarea data-field="script" onblur="updateField(${t.id},'script',this.value,this.previousElementSibling.querySelector('.saved-tag'))" placeholder="Paste or write the script here, or click Generate with AI above...">${d.script||''}</textarea>
+
         <div class="field-label">Flow JSON (Scenes) <span class="saved-tag">Saved</span></div>
-        <textarea onblur="updateField(${t.id},'json',this.value,this.previousElementSibling)" placeholder="Paste the JSON scenes here...">${d.json||''}</textarea>
+        <textarea data-field="json" onblur="updateField(${t.id},'json',this.value,this.previousElementSibling)" placeholder="Paste the JSON scenes here...">${d.json||''}</textarea>
+
+        <div class="field-label">Carousel (Slides + Image Prompts) <span class="saved-tag">Saved</span>
+          <span class="spacer"><button class="btn btn-ai btn-sm" onclick="generateCarousel(${t.id}, ${JSON.stringify(t.title)}, this)">Generate with AI</button></span>
+        </div>
+        <textarea data-field="carousel" onblur="updateField(${t.id},'carousel',this.value,this.previousElementSibling.querySelector('.saved-tag'))" placeholder="Click Generate with AI above, or paste carousel slide copy + image prompts here...">${d.carousel||''}</textarea>
+
+        <div class="field-label">Posted Links</div>
+        <div class="link-row">
+          <div class="link-item"><label>YouTube Shorts</label><input value="${d.shortsUrl||''}" placeholder="https://youtube.com/shorts/..." onblur="updateField(${t.id},'shortsUrl',this.value)"></div>
+          <div class="link-item"><label>Instagram Reel</label><input value="${d.reelUrl||''}" placeholder="https://instagram.com/reel/..." onblur="updateField(${t.id},'reelUrl',this.value)"></div>
+          <div class="link-item"><label>Carousel Post</label><input value="${d.carouselUrl||''}" placeholder="https://instagram.com/p/..." onblur="updateField(${t.id},'carouselUrl',this.value)"></div>
+        </div>
       </div>
     `;
     list.appendChild(div);
@@ -450,9 +850,10 @@ window.render = function render() {
 }
 
 window.pickRandom = function pickRandom() {
-  const notStarted = TOPICS.filter(t => getData(t.id).status === 'Not Started');
+  const notStarted = TOPICS.filter(t => stageOf(getData(t.id)) === 'Not Started');
   const pool = notStarted.length ? notStarted : TOPICS;
   const pick = pool[Math.floor(Math.random() * pool.length)];
+  currentPick = pick;
   document.getElementById('pickTitle').textContent = '#' + pick.id + ' — ' + pick.title;
 }
 
@@ -462,7 +863,6 @@ window.copyText = function copyText(id) {
   document.execCommand('copy');
 }
 
-// init
 document.getElementById('tplResearch').value = RESEARCH_TEMPLATE;
 document.getElementById('tplJson').value = JSON_TEMPLATE;
 const catSel = document.getElementById('catFilter');
@@ -471,6 +871,7 @@ CATEGORIES.forEach(c => {
   opt.value = c; opt.textContent = c;
   catSel.appendChild(opt);
 });
+renderIdeas();
 pickRandom();
 render();
 
