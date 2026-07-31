@@ -374,6 +374,7 @@
       <a class="sidebar-link" href="#backlog">Topic Backlog<span class="sidebar-badge" id="backlogCountBadge">100</span></a>
       <a class="sidebar-link" href="#research">Content Research</a>
       <a class="sidebar-link" href="#trending">Trending Topics</a>
+      <a class="sidebar-link" href="#carouselResearch">Carousel Inspiration</a>
     </div>
     <div class="sidebar-group">
       <div class="sidebar-label">Library</div>
@@ -467,6 +468,15 @@
     <div id="researchList" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 
+  <div class="card" id="carouselResearch">
+    <div class="card-head"><div class="card-icon i-pink"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div><div class="card-text"><h2>Carousel Inspiration (real viral examples)</h2><div class="card-sub" style="margin-bottom:0">Roz automatic (GitHub Action) Gemini + Google Search se real, sourced viral Instagram business carousels dhundta hai — hook, slide-structure, aur kyun viral hua wo sab. Instagram ka koi free trending API nahi hai, isliye ye honest web-sourced proxy hai, kabhi fake nahi. Jo structure pasand aaye "Use This Style" dabao — agle carousel-generation mein wahi style follow hoga.</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--muted)" id="carouselResearchLastUpdated">Abhi tak koi data nahi hai</span>
+      <span style="font-size:12px;color:var(--accent)" id="carouselStyleActive"></span>
+    </div>
+    <div id="carouselResearchList" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+
   <div class="card" id="trending">
     <div class="card-head"><div class="card-icon i-accent"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17a2.5 2.5 0 0 0 2.5-2.5c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 1 1-15 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5z"/></svg></div><div class="card-text"><h2>Trending Topics (quick check, with proof)</h2><div class="card-sub" style="margin-bottom:0">Gemini + live Google Search se abhi ke trending AI/business topics dhundta hai — instant manual check ke liye (Content Research card upar deeper, automatic, multi-platform scan hai).</div></div></div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
@@ -522,6 +532,7 @@ const topicsCol = collection(db, "topics");
 const topicsListRef = doc(db, "meta", "topicsList");
 const trendingRef = doc(db, "meta", "trending");
 const researchRef = doc(db, "meta", "contentResearch");
+const carouselResearchRef = doc(db, "meta", "carouselResearch");
 
 const CATEGORIES = ["Business Collapse/Failure","Hidden Business Models","Founder Psychology & Decisions","Marketing Psychology Tricks","Company Rivalries & Wars","Pricing Psychology","Indian Business Stories","Global Tech Secrets","Scams & Frauds","Underdog/Comeback Stories"];
 
@@ -815,6 +826,7 @@ let topicsListSeeding = false;
 let autoReplenishing = false;
 let lastTrendingItems = [];
 let lastResearchItems = [];
+let lastCarouselItems = [];
 
 onSnapshot(topicsCol, (snapshot) => {
   snapshot.forEach(d => { topicsCache[d.id] = d.data(); });
@@ -850,6 +862,12 @@ onSnapshot(researchRef, (snap) => {
   const data = snap.exists() ? snap.data() : null;
   lastResearchItems = (data && data.items) || [];
   renderResearch(data);
+}, () => {});
+
+onSnapshot(carouselResearchRef, (snap) => {
+  const data = snap.exists() ? snap.data() : null;
+  lastCarouselItems = (data && data.items) || [];
+  renderCarouselResearch(data);
 }, () => {});
 
 async function seedIfNeeded() {
@@ -1142,7 +1160,15 @@ window.generateCarousel = function(tid, btn) {
     const title = topic ? topic.title : '';
     const d = getData(tid);
     if (!(d.research||'').trim() && !(d.script||'').trim()) { alert('Pehle Research ya Script bharo.'); return; }
-    const prompt = `Create an Instagram carousel for this business story, Hormozi-style: slide 1 is one strong claim or result as the hook, slides 2 through 9 walk through step-by-step reasoning (one idea per slide, short punchy Hindi/Hinglish text), final slide is the lesson plus a follow CTA. 8 to 10 slides total. For EACH slide also give a one-line background/visual image-generation prompt (dark minimal background, bold typography, no photos of people, professional editorial style, suitable for pasting into ChatGPT/Gemini image generation). Format as:\n\nSLIDE 1:\nText: ...\nImage prompt: ...\n\nSLIDE 2:\n...\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
+    const styleRaw = localStorage.getItem('preferredCarouselStyle');
+    let styleNote = '';
+    if (styleRaw) {
+      try {
+        const style = JSON.parse(styleRaw);
+        styleNote = `\n\nMatch this PROVEN viral structure as closely as the content allows (from a real high-performing carousel titled "${style.title}"):\nHook style: ${style.hook}\nSlide progression: ${style.structure}\nAdapt this exact pattern to today's topic — don't just copy the words, copy the structural mechanics that made it work.`;
+      } catch (e) {}
+    }
+    const prompt = `Create an Instagram carousel for this business story, Hormozi-style: slide 1 is one strong claim or result as the hook, slides 2 through 9 walk through step-by-step reasoning (one idea per slide, short punchy Hindi/Hinglish text), final slide is the lesson plus a follow CTA. 8 to 10 slides total. For EACH slide also give a one-line background/visual image-generation prompt (dark minimal background, bold typography, no photos of people, professional editorial style, suitable for pasting into ChatGPT/Gemini image generation).${styleNote} Format as:\n\nSLIDE 1:\nText: ...\nImage prompt: ...\n\nSLIDE 2:\n...\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
     const out = await callGemini(prompt);
     if (out) { await updateField(tid, 'carousel', out); }
   });
@@ -1301,6 +1327,51 @@ function renderResearch(data) {
       </div>
     </div>`;
   }).join('');
+}
+
+window.useCarouselStyle = function(idx) {
+  const it = lastCarouselItems[idx];
+  if (!it) return;
+  localStorage.setItem('preferredCarouselStyle', JSON.stringify({title: it.title, hook: it.hook, structure: it.structure}));
+  renderCarouselResearch({items: lastCarouselItems, lastRefreshed: Date.now()});
+  alert('Ye style ab default ban gaya — agla carousel jo bhi generate karoge, isi structure ko follow karega.');
+}
+
+window.clearCarouselStyle = function() {
+  localStorage.removeItem('preferredCarouselStyle');
+  renderCarouselResearch({items: lastCarouselItems, lastRefreshed: Date.now()});
+}
+
+function renderCarouselResearch(data) {
+  const el = document.getElementById('carouselResearchList');
+  const stamp = document.getElementById('carouselResearchLastUpdated');
+  const activeEl = document.getElementById('carouselStyleActive');
+  if (!el || !stamp) return;
+  const active = localStorage.getItem('preferredCarouselStyle');
+  if (activeEl) {
+    activeEl.innerHTML = active
+      ? `Active style: <b>${JSON.parse(active).title}</b> <a href="#" onclick="clearCarouselStyle();return false" style="color:var(--muted);text-decoration:underline;margin-left:6px">clear</a>`
+      : '';
+  }
+  if (!data || !data.items || !data.items.length) {
+    el.innerHTML = '<div style="font-size:12.5px;color:var(--muted)">Abhi tak koi data nahi hai — ye card daily GitHub Action se khud-ba-khud bharta hai, ya "Run workflow" se manually trigger kar sakte ho GitHub Actions tab se.</div>';
+    stamp.textContent = 'Abhi tak koi data nahi hai';
+    return;
+  }
+  stamp.textContent = 'Last updated: ' + new Date(data.lastRefreshed).toLocaleString('en-IN');
+  el.innerHTML = data.items.map((it, idx) => `
+    <div class="trend-card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:4px">${it.title}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px"><b>Hook:</b> ${it.hook || ''}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px"><b>Structure:</b> ${it.structure || ''}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px"><b>Why viral:</b> ${it.whyViral || ''}</div>
+          <a href="${it.source}" target="_blank" rel="noopener" class="trend-source">${ICONS.link}Source</a>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="useCarouselStyle(${idx})">${ICONS.wand}Use This Style</button>
+      </div>
+    </div>`).join('');
 }
 
 function renderStats() {
@@ -1531,6 +1602,7 @@ pickRandom();
 render();
 renderTrending(null);
 renderResearch(null);
+renderCarouselResearch(null);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
