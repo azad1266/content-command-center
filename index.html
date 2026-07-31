@@ -407,7 +407,7 @@
   </div>
 
   <div class="card" id="studio">
-    <div class="card-head"><div class="card-icon i-green"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="card-text"><h2>Production Studio</h2><div class="card-sub" style="margin-bottom:0">Topic chuno, phir neeche tabs se ek-ek process alag-alag karo: Research, Script, JSON, Packaging.</div></div></div>
+    <div class="card-head"><div class="card-icon i-green"><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="card-text"><h2>Production Studio</h2><div class="card-sub" style="margin-bottom:0">Topic chuno, phir neeche tabs se ek-ek process alag-alag karo: Research, Script, JSON, Video, Thumbnail, Packaging.</div></div></div>
     <select class="studio-select" id="studioTopicSelect" onchange="renderStudio()"></select>
     <div class="stage-row" id="studioStageRow"></div>
     <div class="studio-tabs" id="studioTabs"></div>
@@ -807,13 +807,16 @@ const ICONS = {
   hash: '<svg class="ic" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg>',
   send: '<svg class="ic" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
   link: '<svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg>',
-  package: '<svg class="ic" viewBox="0 0 24 24"><path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>'
+  package: '<svg class="ic" viewBox="0 0 24 24"><path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>',
+  image: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>'
 };
 
 const TABS = [
   {key: 'research', label: 'Research', icon: ICONS.research},
   {key: 'script', label: 'Script', icon: ICONS.script},
   {key: 'json', label: 'JSON', icon: ICONS.json},
+  {key: 'video', label: 'Video', icon: ICONS.video},
+  {key: 'thumbnail', label: 'Thumbnail', icon: ICONS.image},
   {key: 'packaging', label: 'Packaging', icon: ICONS.package}
 ];
 
@@ -1153,6 +1156,19 @@ window.generateCaptions = function(tid, btn) {
   });
 }
 
+window.generateThumbnail = function(tid, btn) {
+  runGenerate(btn, async () => {
+    tid = Number(tid);
+    const topic = TOPICS.find(x => x.id === tid);
+    const title = topic ? topic.title : '';
+    const d = getData(tid);
+    if (!(d.script||'').trim() && !(d.research||'').trim()) { alert('Pehle Research ya Script bharo.'); return; }
+    const prompt = `You are a YouTube Shorts thumbnail strategist for a Hindi business-storytelling channel that uses a single AI avatar. Based on the research/script below, produce thumbnail direction optimized for click-through.\n\nFormat exactly like this with clear headers:\n\nHEADLINE OPTIONS (2-5 Hindi/Hinglish words each, huge bold on-screen text, curiosity/shock/contrast-driven, pick words that work even at small size):\n1. ...\n2. ...\n3. ...\n\nBACKGROUND IMAGE PROMPT (detailed, paste-ready for Bing Image Creator / Canva / Gemini image-gen — dramatic, high-contrast, editorial style matching the story, NO people or faces in it, leaves clear space on one side for the avatar's face + bold headline text):\n...\n\nTEXT STYLE NOTES (color, placement, outline/shadow, contrast tips so headline stays readable next to the avatar's face in CapCut/Canva):\n...\n\nTopic: ${title}\nResearch:\n${d.research||''}\nScript:\n${d.script||''}`;
+    const out = await callGemini(prompt);
+    if (out) { await updateField(tid, 'thumbnail', out); }
+  });
+}
+
 window.generateCarousel = function(tid, btn) {
   runGenerate(btn, async () => {
     tid = Number(tid);
@@ -1432,6 +1448,17 @@ function populateStudioSelect() {
 
 window.setStudioTab = function(key) { activeTab = key; renderStudio(); }
 
+// Parses the Flow JSON (already generated in the JSON tab) client-side, no AI call —
+// just reshapes each part's dialogue/music/SFX into a plain reference sheet for syncing
+// captions and music while assembling the final video in CapCut.
+function buildVideoCaptionsText(jsonStr) {
+  if (!jsonStr || !jsonStr.trim()) return '';
+  let parts;
+  try { parts = JSON.parse(jsonStr); } catch (e) { return ''; }
+  if (!Array.isArray(parts) || !parts.length) return '';
+  return parts.map(p => `PART ${p.part ?? '?'}  (${p.duration || '?'})\nDialogue: ${p.dialogue || ''}\nMusic: ${p.background_music || ''}\nSFX: ${p.sound_effects || ''}`).join('\n\n');
+}
+
 function panelHtml(tab, t, d) {
   if (tab === 'research') return `
     <div class="studio-panel-title">${ICONS.research} Step 1 — Research</div>
@@ -1462,8 +1489,30 @@ function panelHtml(tab, t, d) {
     <button class="btn btn-ai" onclick="generateJson(${t.id}, this)">${ICONS.wand}Generate Flow JSON with AI</button>
     <textarea onblur="updateField(${t.id},'json',this.value)" placeholder="Script tab pehle bharo, phir Generate dabao, ya khud JSON paste karo..." style="min-height:520px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;line-height:1.5">${d.json||''}</textarea>
   `;
+  if (tab === 'video') {
+    const captionsPkg = buildVideoCaptionsText(d.json || '');
+    return `
+    <div class="studio-panel-title">${ICONS.video} Step 4 — Video Assembly (Flow clips → Final Video)</div>
+    <div class="studio-panel-desc">Google Flow abhi seedha automate nahi ho sakta (koi public API nahi hai), isliye ye checklist follow karo taaki har video same quality aur speed se bane.</div>
+    <div style="background:#f6f8fa;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;font-size:13.5px;line-height:1.95">
+      <b>1.</b> JSON tab ka har part Google Flow me daalo — Part 1 "FRESH" (Ingredients = locked avatar), baaki sab "EXTEND from Part N" — har clip download karo.<br>
+      <b>2.</b> CapCut (free app) me saare clips sahi order me import + sequence karo.<br>
+      <b>3.</b> CapCut ka free "Auto Captions" laga ke, neeche diye dialogue se match karke bold word-by-word karaoke-style caption theek karo.<br>
+      <b>4.</b> CapCut ke free music library se ek hi consistent mood ka track poore video me lagao — neeche diye "Music" cue reference ke liye — voice ke neeche volume duck karo.<br>
+      <b>5.</b> 1080×1920 (9:16) vertical export karo, phir upar "Video" aur "Edited" stage-chip tick kar do.
+    </div>
+    <div class="field-label">Dialogue + Music/SFX Reference (JSON se auto-nikala, part-by-part)</div>
+    <textarea readonly onclick="this.select()" style="min-height:340px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;line-height:1.7">${captionsPkg || 'Pehle JSON tab me Flow JSON generate karo — us se yahan dialogue/music reference khud ban jayega.'}</textarea>
+  `;
+  }
+  if (tab === 'thumbnail') return `
+    <div class="studio-panel-title">${ICONS.image} Step 5 — Thumbnail</div>
+    <div class="studio-panel-desc">Ek click me 3 thumbnail headline options + ek detailed background-image prompt (Bing Image Creator / Canva / Gemini image-gen me paste karne layak) ban jayega.</div>
+    <button class="btn btn-ai" onclick="generateThumbnail(${t.id}, this)">${ICONS.wand}Generate Thumbnail Ideas with AI</button>
+    <textarea onblur="updateField(${t.id},'thumbnail',this.value)" placeholder="Research ya Script tab pehle bharo, phir Generate dabao...">${d.thumbnail||''}</textarea>
+  `;
   if (tab === 'packaging') return `
-    <div class="studio-panel-title">${ICONS.package} Step 4 — Packaging</div>
+    <div class="studio-panel-title">${ICONS.package} Step 6 — Packaging</div>
     <div class="studio-panel-desc">Ek click me YouTube ke liye Title + Description aur Instagram ke liye Caption — dono ready ban jayenge, publish karte waqt seedha copy-paste karne layak.</div>
     <button class="btn btn-ai" onclick="generateCaptions(${t.id}, this)">${ICONS.wand}Generate Packaging with AI</button>
     <textarea onblur="updateField(${t.id},'captions',this.value)" placeholder="Research ya Script tab pehle bharo, phir Generate dabao...">${d.captions||''}</textarea>
