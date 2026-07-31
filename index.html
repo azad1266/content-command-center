@@ -355,9 +355,10 @@
   <div class="settings-inner" style="flex-direction:column;align-items:stretch">
     <input type="password" id="geminiKeyInput" placeholder="Gemini API Key #1 (primary) — aistudio.google.com/apikey">
     <input type="password" id="geminiKey2Input" placeholder="Gemini API Key #2 (backup, optional — rate-limit lagne par khud is pe switch hoga)">
-    <input type="password" id="grokKeyInput" placeholder="Grok API Key (optional — x.ai, iska koi free tier nahi hai, paid credits lagte hain)">
+    <input type="password" id="groqKeyInput" placeholder="Groq API Key (optional, FREE — console.groq.com, koi card nahi chahiye)">
+    <input type="password" id="grokKeyInput" placeholder="Grok API Key (optional, PAID — x.ai, iska koi permanent free tier nahi hai)">
     <button class="btn btn-primary btn-sm" style="align-self:flex-start" onclick="saveGeminiKey()">Save keys</button>
-    <span class="settings-note">Keys sirf is browser ke localStorage me save hote hain — GitHub par kabhi upload nahi hote. Gemini #1 fail/rate-limit ho to khud #2 try karega, phir Grok (agar diya ho).</span>
+    <span class="settings-note">Keys sirf is browser ke localStorage me save hote hain — GitHub par kabhi upload nahi hote. Gemini #1 fail/rate-limit ho to khud #2, phir Groq (free), phir Grok (agar diya ho) try karega.</span>
   </div>
 </div>
 
@@ -913,21 +914,25 @@ window.toggleSettings = function() { document.getElementById('settingsPanel').cl
 window.saveGeminiKey = function() {
   const v1 = document.getElementById('geminiKeyInput').value.trim();
   const v2 = document.getElementById('geminiKey2Input').value.trim();
-  const v3 = document.getElementById('grokKeyInput').value.trim();
+  const v3 = document.getElementById('groqKeyInput').value.trim();
+  const v4 = document.getElementById('grokKeyInput').value.trim();
   if (v1) localStorage.setItem('geminiKey', v1);
   if (v2) localStorage.setItem('geminiKey2', v2);
-  if (v3) localStorage.setItem('grokKey', v3);
-  if (v1 || v2 || v3) alert('Keys saved on this device.');
+  if (v3) localStorage.setItem('groqKey', v3);
+  if (v4) localStorage.setItem('grokKey', v4);
+  if (v1 || v2 || v3 || v4) alert('Keys saved on this device.');
 }
 const savedKey = localStorage.getItem('geminiKey');
 if (savedKey) document.getElementById('geminiKeyInput').value = savedKey;
 const savedKey2 = localStorage.getItem('geminiKey2');
 if (savedKey2) document.getElementById('geminiKey2Input').value = savedKey2;
+const savedGroqKey = localStorage.getItem('groqKey');
+if (savedGroqKey) document.getElementById('groqKeyInput').value = savedGroqKey;
 const savedGrokKey = localStorage.getItem('grokKey');
 if (savedGrokKey) document.getElementById('grokKeyInput').value = savedGrokKey;
 
 function hasAnyKey() {
-  return !!(localStorage.getItem('geminiKey') || localStorage.getItem('geminiKey2') || localStorage.getItem('grokKey'));
+  return !!(localStorage.getItem('geminiKey') || localStorage.getItem('geminiKey2') || localStorage.getItem('groqKey') || localStorage.getItem('grokKey'));
 }
 
 async function callGeminiWithKey(key, prompt) {
@@ -939,6 +944,17 @@ async function callGeminiWithKey(key, prompt) {
   if (!res.ok) { const t = await res.text(); throw new Error('Gemini error: ' + t.slice(0,200)); }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+async function callGroqWithKey(key, prompt) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + key},
+    body: JSON.stringify({model: 'llama-3.3-70b-versatile', messages: [{role: 'user', content: prompt}]})
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error('Groq error: ' + t.slice(0,200)); }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || '';
 }
 
 async function callGrokWithKey(key, prompt) {
@@ -955,11 +971,13 @@ async function callGrokWithKey(key, prompt) {
 async function callGemini(prompt) {
   const key1 = localStorage.getItem('geminiKey');
   const key2 = localStorage.getItem('geminiKey2');
+  const groqKey = localStorage.getItem('groqKey');
   const grokKey = localStorage.getItem('grokKey');
-  if (!key1 && !key2 && !grokKey) { alert('Pehle Settings (gear icon, top-right) me apna free Gemini API key add karo.'); return null; }
+  if (!key1 && !key2 && !groqKey && !grokKey) { alert('Pehle Settings (gear icon, top-right) me apna free Gemini ya Groq API key add karo.'); return null; }
   const attempts = [];
   if (key1) attempts.push(() => callGeminiWithKey(key1, prompt));
   if (key2) attempts.push(() => callGeminiWithKey(key2, prompt));
+  if (groqKey) attempts.push(() => callGroqWithKey(groqKey, prompt));
   if (grokKey) attempts.push(() => callGrokWithKey(grokKey, prompt));
   let lastErr;
   for (const attempt of attempts) {
@@ -1038,6 +1056,28 @@ window.submitResearch = function(tid, btn) {
   });
 }
 
+// Faster alternative to the manual Perplexity copy-paste flow: uses Gemini's own
+// Google Search grounding (already used for Trending Topics) to research the topic
+// directly, no external tool needed. Perplexity is often broader/deeper for a single
+// deep-dive, so both paths stay available — this is for speed, not a replacement.
+window.autoResearch = function(tid, btn) {
+  runGenerate(btn, async () => {
+    tid = Number(tid);
+    const topic = TOPICS.find(x => x.id === tid);
+    const result = await callGeminiGrounded(buildResearchPrompt(topic));
+    if (!result || !result.text) return;
+    let researchText = result.text.trim();
+    if (result.groundingUrls && result.groundingUrls.length) {
+      researchText += '\n\nSOURCES (auto-grounded):\n' + result.groundingUrls.slice(0, 8).map(u => '- ' + u).join('\n');
+    }
+    await updateField(tid, 'research', researchText);
+    await setDoc(doc(db,'topics',String(tid)), {doneResearch:true}, {merge:true});
+    await doGenerateScript(tid, researchText);
+    activeTab = 'script';
+    renderStudio();
+  });
+}
+
 window.generateScript = function(tid, btn) {
   runGenerate(btn, async () => {
     tid = Number(tid);
@@ -1108,15 +1148,22 @@ window.generateCarousel = function(tid, btn) {
   });
 }
 
-async function addTopicToList(cat, title, source) {
+async function addTopicToList(cat, title, source, priority) {
   const maxId = TOPICS.reduce((m,t) => Math.max(m, t.id), 0);
-  const newTopic = {id: maxId + 1, cat, title, source: source || 'manual', addedAt: Date.now()};
+  const newTopic = {id: maxId + 1, cat, title, source: source || 'manual', addedAt: Date.now(), priority: priority || 0};
   const updated = TOPICS.concat([newTopic]);
   TOPICS = updated;
   await setDoc(topicsListRef, {topics: updated});
   populateStudioSelect();
   render();
   return newTopic;
+}
+
+// Highest Content-Research viral-score topics first, then everything else in
+// insertion order — so the Topic Backlog and Studio picker always surface the
+// statistically best next video instead of a random/oldest-first pick.
+function sortByPriority(arr) {
+  return arr.slice().sort((a, b) => (b.priority || 0) - (a.priority || 0));
 }
 
 async function maybeAutoReplenish() {
@@ -1212,7 +1259,7 @@ function renderTrending(data) {
 window.addResearchToBacklog = async function(idx) {
   const it = lastResearchItems[idx];
   if (!it) return;
-  const newTopic = await addTopicToList(it.cat, it.title, 'research');
+  const newTopic = await addTopicToList(it.cat, it.title, 'research', it.viralScore);
   openInStudio(newTopic.id);
 }
 
@@ -1301,10 +1348,10 @@ function populateStudioSelect() {
   CATEGORIES.forEach(cat => {
     const grp = document.createElement('optgroup');
     grp.label = cat;
-    TOPICS.filter(t => t.cat === cat).forEach(t => {
+    sortByPriority(TOPICS).filter(t => t.cat === cat).forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.id;
-      opt.textContent = '#' + t.id + ' — ' + t.title;
+      opt.textContent = (t.priority ? '🔥' + t.priority + ' — ' : '') + '#' + t.id + ' — ' + t.title;
       grp.appendChild(opt);
     });
     sel.appendChild(grp);
@@ -1317,8 +1364,9 @@ window.setStudioTab = function(key) { activeTab = key; renderStudio(); }
 function panelHtml(tab, t, d) {
   if (tab === 'research') return `
     <div class="studio-panel-title">${ICONS.research} Step 1 — Research</div>
-    <div class="studio-panel-desc">Neeche ye poora prompt is topic ke liye ready hai — Perplexity.ai kholo, paste karo, jo jawab aaye wo uske neeche wale box me paste kar ke "Submit" dabao — script khud-ba-khud ban ke Script tab me ready mil jayega.</div>
-    <div class="field-label">Research Prompt (is topic ke liye ready-made)</div>
+    <div class="studio-panel-desc">Do tareeke hain: (1) fast — neeche "Auto-Research with AI" dabao, Gemini khud web search karke research kar dega, script bhi turant ban jayega. (2) deeper — Perplexity.ai wala prompt copy karo, wahan paste karo, jawab neeche paste karke "Submit" dabao.</div>
+    <button class="btn btn-ai" onclick="autoResearch(${t.id}, this)">${ICONS.wand}Auto-Research with AI (fast, Gemini)</button>
+    <div class="field-label" style="margin-top:18px">Research Prompt (Perplexity ke liye, deeper research chahiye to)</div>
     <textarea id="researchPromptBox" readonly onclick="this.select()" style="min-height:130px;background:#fafbfc">${buildResearchPrompt(t)}</textarea>
     <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="copyTopicResearch(${t.id})">${ICONS.copy}Copy Research Prompt</button>
     <div class="field-label" style="margin-top:18px">Perplexity Ka Jawab Yahan Paste Karo</div>
@@ -1394,7 +1442,7 @@ window.render = function render() {
   const openIds = Array.from(document.querySelectorAll('.topic-body.open')).map(el => el.id);
   list.innerHTML = '';
 
-  TOPICS.filter(t => {
+  sortByPriority(TOPICS).filter(t => {
     const d = getData(t.id);
     const s = stageOf(d);
     if (search && !t.title.toLowerCase().includes(search)) return false;
@@ -1408,9 +1456,11 @@ window.render = function render() {
     const div = document.createElement('div');
     div.className = 'topic';
     const progressDots = STAGES.map(st => `<span class="${d[st.key] ? 'on' : ''}"></span>`).join('');
+    const priorityBadge = t.priority ? `<span style="font-weight:800;font-size:11.5px;color:#fff;background:${t.priority>=8?'#c0392b':t.priority>=6?'#d68910':'#555'};border-radius:6px;padding:1px 6px;margin-right:6px">🔥 ${t.priority}/10</span>` : '';
     div.innerHTML = `
       <div class="topic-head" onclick="toggleTopic(${t.id})">
         <span class="topic-num">#${t.id}</span>
+        ${priorityBadge}
         <span class="topic-title">${t.title}</span>
         <span class="badge cat-${catIdx}">${t.cat}</span>
         <div class="progress-track">${progressDots}</div>
@@ -1423,7 +1473,7 @@ window.render = function render() {
           Script: ${d.script ? d.script.slice(0,80)+'…' : '<em>not added yet</em>'}<br>
           JSON: ${d.json ? 'ready' : '<em>not added yet</em>'}<br>
           Captions: ${d.captions ? 'ready' : '<em>not added yet</em>'}<br>
-          Carousel: ${d.carousel ? 'ready' : '<em>not added yet</em>'}
+          Carousel: ${d.carousel ? 'ready' : '<em>not added yet</em>'}${d.stats ? `<br>Performance: <b>${d.stats.views.toLocaleString('en-IN')}</b> views, ${d.stats.likes.toLocaleString('en-IN')} likes <span style="color:var(--muted)">(weekly analytics, updated ${new Date(d.stats.fetchedAt).toLocaleDateString('en-IN')})</span>` : ''}
         </div>
       </div>
     `;
@@ -1445,7 +1495,12 @@ window.render = function render() {
 window.pickRandom = function pickRandom() {
   const notStarted = TOPICS.filter(t => stageOf(getData(t.id)) === 'Not Started');
   const pool = notStarted.length ? notStarted : TOPICS;
-  const pick = pool[Math.floor(Math.random() * pool.length)];
+  // Bias toward the highest Content-Research scored topics (top ~20%, min 3) when
+  // any scored topics exist in the pool; otherwise fall back to plain random.
+  const sorted = sortByPriority(pool);
+  const hasScored = sorted.length && (sorted[0].priority || 0) > 0;
+  const candidatePool = hasScored ? sorted.slice(0, Math.max(3, Math.ceil(sorted.length * 0.2))) : pool;
+  const pick = candidatePool[Math.floor(Math.random() * candidatePool.length)];
   currentPick = pick;
   document.getElementById('pickTitle').textContent = '#' + pick.id + ' — ' + pick.title;
   const sel = document.getElementById('studioTopicSelect');
