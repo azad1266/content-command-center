@@ -1,8 +1,12 @@
 // Content Command Center — Daily Content Ops
 // Runs server-side via GitHub Actions (never in the browser).
-// Uses the GEMINI_API_KEY / GEMINI_API_KEY1 repo secrets to:
+// Uses the GEMINI_API_KEY / GEMINI_API_KEY1 (and optional YOUTUBE_API_KEY) repo secrets to:
 //   1. Auto-replenish the Topic Backlog (meta/topicsList) up to 100 active topics.
 //   2. Refresh Trending Topics (meta/trending) using Google Search grounding.
+//   3. Run Content Research (meta/contentResearch) — real viral signal pulled from
+//      YouTube (Data API), Reddit (public JSON, no key needed), and an Instagram-Reels
+//      proxy signal via Gemini+Google Search (Instagram has no free trending API, so
+//      this is the honest substitute — never faked/invented data).
 // Writes results straight to Firestore (rules are open, so the public web
 // config below is enough — no service account / Admin SDK needed).
 
@@ -24,6 +28,7 @@ if (!KEYS.length) {
   console.error('No Gemini key found in secrets (GEMINI_API_KEY / GEMINI_API_KEY1). Aborting.');
   process.exit(1);
 }
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || '';
 
 const CATEGORIES = ["Business Collapse/Failure","Hidden Business Models","Founder Psychology & Decisions","Marketing Psychology Tricks","Company Rivalries & Wars","Pricing Psychology","Indian Business Stories","Global Tech Secrets","Scams & Frauds","Underdog/Comeback Stories"];
 
@@ -131,9 +136,176 @@ async function refreshTrending() {
   console.log('Trending topics refreshed:', items.length, 'items.');
 }
 
+// ---- Content Research: real cross-platform viral signal ----
+
+const YT_QUERIES = [
+  'company collapse story',
+  'business scam exposed',
+  'hidden business model',
+  'founder biggest mistake',
+  'startup failure story',
+  'business rivalry war'
+];
+
+async function fetchYouTubeSignal() {
+  if (!YOUTUBE_API_KEY) {
+    console.log('YOUTUBE_API_KEY not set — skipping YouTube signal (Reddit + Instagram-proxy signal will still run).');
+    return [];
+  }
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const items = [];
+  for (const q of YT_QUERIES) {
+    try {
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&order=viewCount&maxResults=5&publishedAfter=${sevenDaysAgo}&q=${encodeURIComponent(q)}&key=${YOUTUBE_API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) { console.error('YouTube search failed for "' + q + '":', res.status, (await res.text()).slice(0, 200)); continue; }
+      const data = await res.json();
+      (data.items || []).forEach(v => {
+        items.push({
+          title: v.snippet?.title || '',
+          channel: v.snippet?.channelTitle || '',
+          publishedAt: v.snippet?.publishedAt || '',
+          url: 'https://youtube.com/watch?v=' + (v.id?.videoId || ''),
+          queryMatched: q
+        });
+      });
+    } catch (e) { console.error('YouTube fetch error for "' + q + '":', e.message); }
+  }
+  console.log('YouTube signal:', items.length, 'videos across', YT_QUERIES.length, 'queries.');
+  return items;
+}
+
+const REDDIT_SUBS = ['business', 'Entrepreneur', 'startups', 'IndiaBusiness', 'technology', 'Scams', 'CorporateFacepalm'];
+
+async function fetchRedditSignal() {
+  const items = [];
+  for (const sub of REDDIT_SUBS) {
+    try {
+      const url = `https://www.reddit.com/r/${sub}/top.json?t=week&limit=8`;
+      const res = await fetch(url, { headers: { 'User-Agent': 'content-command-center-research/1.0 (by /u/azad1266)' } });
+      if (!res.ok) { console.error('Reddit fetch failed for r/' + sub + ':', res.status); continue; }
+      const data = await res.json();
+      (data.data?.children || []).forEach(c => {
+        const p = c.data;
+        if (!p) return;
+        items.push({
+          title: p.title,
+          subreddit: sub,
+          upvotes: p.ups,
+          comments: p.num_comments,
+          url: 'https://reddit.com' + p.permalink
+        });
+      });
+    } catch (e) { console.error('Reddit fetch error for r/' + sub + ':', e.message); }
+  }
+  console.log('Reddit signal:', items.length, 'posts across', REDDIT_SUBS.length, 'subreddits.');
+  return items;
+}
+
+async function fetchInstagramSignal() {
+  // Instagram has no free/legal trending-content API. This uses Gemini + Google
+  // Search grounding to find real, sourced web mentions of what's trending on
+  // Instagram Reels right now — an honest proxy signal, never invented data.
+  const prompt = `Search the web for real, currently-trending Instagram Reels or posts (this week) related to business, entrepreneurship, startups, scams, or corporate stories. Only report items you can back with a real, working source URL (a news article, blog, or aggregator that discusses the trending Reel/post) — do not guess or invent anything.\n\nFor each one found, respond in EXACTLY this block format:\n\nTITLE: <what the trending content is about>\nSOURCE: <the real URL>\n\nIf you cannot find any with real sources, return nothing.`;
+  try {
+    const text = await callGemini(prompt, true);
+    const blocks = text.split(/\n(?=TITLE:)/i);
+    const items = [];
+    blocks.forEach(b => {
+      const title = (b.match(/TITLE:\s*(.+)/i) || [])[1];
+      const source = (b.match(/SOURCE:\s*(.+)/i) || [])[1];
+      if (title && source) items.push({ title: title.trim(), url: source.trim() });
+    });
+    console.log('Instagram-proxy signal:', items.length, 'sourced items.');
+    return items;
+  } catch (e) {
+    console.error('Instagram-proxy signal failed:', e.message);
+    return [];
+  }
+}
+
+function trimList(items, n, keyFn) {
+  return items.slice(0, n).map(keyFn).join('\n') || '(none found)';
+}
+
+async function synthesizeContentResearch(yt, reddit, ig) {
+  const ytBlock = trimList(yt, 30, v => `- "${v.title}" (${v.channel}, ${v.publishedAt.slice(0, 10)}) ${v.url}`);
+  const redditBlock = trimList(reddit.sort((a, b) => b.upvotes - a.upvotes), 30, p => `- [r/${p.subreddit}, ${p.upvotes} upvotes, ${p.comments} comments] "${p.title}" ${p.url}`);
+  const igBlock = trimList(ig, 15, i => `- "${i.title}" ${i.url}`);
+
+  const prompt = `You are a viral-content strategist for a Hindi business-storytelling YouTube Shorts channel (faceless, AI avatar). The channel's 10 categories are: ${CATEGORIES.join(', ')}.
+
+Below is REAL raw signal pulled just now from three platforms. Your job: find the 8-10 strongest video topic candidates by looking for overlap, momentum, and genuine relevance to this channel's niche — not just copying titles verbatim.
+
+=== YOUTUBE (recent high-view videos matching business/company-story searches) ===
+${ytBlock}
+
+=== REDDIT (top posts this week from business-adjacent subreddits) ===
+${redditBlock}
+
+=== INSTAGRAM-ADJACENT (web-sourced mentions of trending Instagram business content) ===
+${igBlock}
+
+For each of your 8-10 picks, respond in EXACTLY this block format:
+
+TITLE: <a punchy Hindi/Hinglish video title for THIS channel, not a copy of the source headline>
+CATEGORY: <closest fit from the 10 categories above>
+VIRAL_SCORE: <1-10, how likely this specific angle is to perform well as a Hindi business-storytelling Short right now>
+WHY: <one line — what signal(s) above support this, e.g. "trending on 2 platforms" or "high Reddit engagement + recent YouTube spike">
+PLATFORMS: <comma-separated: YouTube, Reddit, Instagram — whichever platforms actually support this pick>
+SOURCE: <one real URL from the signal above that best backs this pick>
+
+Only pick topics you can genuinely back with the signal above — do not invent a topic with no supporting evidence. If fewer than 8 topics are well-supported, return fewer rather than padding with weak picks.`;
+
+  try {
+    const text = await callGemini(prompt);
+    const blocks = text.split(/\n(?=TITLE:)/i);
+    const items = [];
+    blocks.forEach(b => {
+      const title = (b.match(/TITLE:\s*(.+)/i) || [])[1];
+      const cat = (b.match(/CATEGORY:\s*(.+)/i) || [])[1];
+      const score = (b.match(/VIRAL_SCORE:\s*(\d+)/i) || [])[1];
+      const why = (b.match(/WHY:\s*(.+)/i) || [])[1];
+      const platforms = (b.match(/PLATFORMS:\s*(.+)/i) || [])[1];
+      const source = (b.match(/SOURCE:\s*(.+)/i) || [])[1];
+      if (title && source) {
+        items.push({
+          title: title.trim(),
+          cat: CATEGORIES.find(c => c.toLowerCase() === (cat || '').trim().toLowerCase()) || CATEGORIES[0],
+          viralScore: Math.max(1, Math.min(10, parseInt(score, 10) || 5)),
+          why: (why || '').trim(),
+          platforms: (platforms || '').split(',').map(s => s.trim()).filter(Boolean),
+          source: source.trim()
+        });
+      }
+    });
+    return items.sort((a, b) => b.viralScore - a.viralScore);
+  } catch (e) {
+    console.error('Content research synthesis failed:', e.message);
+    return [];
+  }
+}
+
+async function runContentResearch() {
+  const [yt, reddit, ig] = await Promise.all([fetchYouTubeSignal(), fetchRedditSignal(), fetchInstagramSignal()]);
+  if (!yt.length && !reddit.length && !ig.length) {
+    console.log('No raw signal from any platform this run — skipping synthesis, leaving old contentResearch data as-is.');
+    return;
+  }
+  const items = await synthesizeContentResearch(yt, reddit, ig);
+  if (!items.length) { console.log('Content research synthesis returned 0 usable topics — leaving old data as-is.'); return; }
+  await setDoc(doc(db, 'meta', 'contentResearch'), {
+    items,
+    lastRefreshed: Date.now(),
+    signalCounts: { youtube: yt.length, reddit: reddit.length, instagram: ig.length }
+  });
+  console.log('Content research saved:', items.length, 'scored topics.');
+}
+
 async function main() {
   await replenishBacklog();
   await refreshTrending();
+  await runContentResearch();
   console.log('Daily content ops complete.');
 }
 
