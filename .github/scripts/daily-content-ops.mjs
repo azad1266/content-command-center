@@ -364,6 +364,51 @@ Only pick topics you can genuinely back with the signal above — do not invent 
   }
 }
 
+// ---- Carousel Inspiration: real, sourced viral Instagram carousel examples ----
+// Instagram has no free API for this either, so — same honest approach as the
+// Instagram-proxy signal above — this uses Gemini + Google Search grounding to find
+// REAL, sourced viral carousels (never invented), and extracts their hook/structure
+// so Aditya can study or directly reuse a proven format, instead of guessing.
+async function fetchCarouselInspiration() {
+  const prompt = `Search the web for real, currently viral or high-engagement Instagram carousel posts (this month) in the business, entrepreneurship, startup, personal-finance, or "business storytelling" niche. Only report carousels you can back with a real, working source URL (the Instagram post itself, or a news/blog article discussing it) — never invent or guess one.
+
+For each one found (aim for 6-8), respond in EXACTLY this block format:
+
+TITLE: <what the carousel is about, one line>
+HOOK: <the exact or paraphrased slide-1 hook/claim that stops the scroll>
+STRUCTURE: <how the slides progress, e.g. "slide 1 shocking claim, slides 2-7 one reason each, slide 8 lesson + CTA">
+WHY_VIRAL: <one line — the engagement signal or psychological reason it worked>
+SOURCE: <the real URL>
+
+If you cannot find any with real sources, return nothing.`;
+  try {
+    const text = await callGemini(prompt, true);
+    const blocks = text.split(/\n(?=TITLE:)/i);
+    const items = [];
+    blocks.forEach(b => {
+      const title = (b.match(/TITLE:\s*(.+)/i) || [])[1];
+      const hook = (b.match(/HOOK:\s*(.+)/i) || [])[1];
+      const structure = (b.match(/STRUCTURE:\s*(.+)/i) || [])[1];
+      const whyViral = (b.match(/WHY_VIRAL:\s*(.+)/i) || [])[1];
+      const source = (b.match(/SOURCE:\s*(.+)/i) || [])[1];
+      if (title && source) {
+        items.push({
+          title: title.trim(),
+          hook: (hook || '').trim(),
+          structure: (structure || '').trim(),
+          whyViral: (whyViral || '').trim(),
+          source: source.trim()
+        });
+      }
+    });
+    if (!items.length) { console.log('Carousel inspiration returned 0 items — leaving old data as-is.'); return; }
+    await setDoc(doc(db, 'meta', 'carouselResearch'), { items, lastRefreshed: Date.now() });
+    console.log('Carousel inspiration saved:', items.length, 'examples.');
+  } catch (e) {
+    console.error('Carousel inspiration failed:', e.message);
+  }
+}
+
 async function runContentResearch() {
   const [yt, reddit, ig] = await Promise.all([fetchYouTubeSignal(), fetchRedditSignal(), fetchInstagramSignal()]);
   if (!yt.length && !reddit.length && !ig.length) {
@@ -384,6 +429,7 @@ async function main() {
   await replenishBacklog();
   await refreshTrending();
   await runContentResearch();
+  await fetchCarouselInspiration();
   console.log('Daily content ops complete.');
 }
 
