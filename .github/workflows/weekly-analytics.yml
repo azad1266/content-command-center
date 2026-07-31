@@ -1,0 +1,28 @@
+name: Weekly Analytics
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: .github/scripts
+        run: npm install --no-audit --no-fund
+
+      - name: Run weekly analytics
+        working-directory: .github/scripts
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YT_API }}
+        run: node weekly-analytics.mjs
