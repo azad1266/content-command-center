@@ -176,13 +176,45 @@ async function fetchYouTubeSignal() {
 }
 
 const REDDIT_SUBS = ['business', 'Entrepreneur', 'startups', 'IndiaBusiness', 'technology', 'Scams', 'CorporateFacepalm'];
+const REDDIT_UA = 'content-command-center-research/1.0 (by /u/azad1266)';
+
+// Reddit blocks anonymous requests from datacenter/cloud IPs (like GitHub Actions
+// runners) with a 403, even for public read-only JSON. The free, legitimate fix is
+// Reddit's own OAuth "script app" flow (client_credentials grant) — free, no card,
+// just two secrets (REDDIT_CLIENT_ID / REDDIT_CLIENT_SECRET) from a Reddit app you
+// create once at reddit.com/prefs/apps. If those secrets aren't set, Reddit signal
+// is skipped gracefully (YouTube + Instagram-proxy signal still run).
+async function getRedditToken() {
+  const id = process.env.REDDIT_CLIENT_ID;
+  const secret = process.env.REDDIT_CLIENT_SECRET;
+  if (!id || !secret) return null;
+  try {
+    const res = await fetch('https://www.reddit.com/api/v1/access_token', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(id + ':' + secret).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': REDDIT_UA
+      },
+      body: 'grant_type=client_credentials'
+    });
+    if (!res.ok) { console.error('Reddit OAuth token request failed:', res.status, (await res.text()).slice(0, 200)); return null; }
+    const data = await res.json();
+    return data.access_token || null;
+  } catch (e) { console.error('Reddit OAuth token error:', e.message); return null; }
+}
 
 async function fetchRedditSignal() {
   const items = [];
+  const token = await getRedditToken();
+  if (!token) {
+    console.log('REDDIT_CLIENT_ID/SECRET not set (or token request failed) — skipping Reddit signal.');
+    return items;
+  }
   for (const sub of REDDIT_SUBS) {
     try {
-      const url = `https://www.reddit.com/r/${sub}/top.json?t=week&limit=8`;
-      const res = await fetch(url, { headers: { 'User-Agent': 'content-command-center-research/1.0 (by /u/azad1266)' } });
+      const url = `https://oauth.reddit.com/r/${sub}/top?t=week&limit=8`;
+      const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token, 'User-Agent': REDDIT_UA } });
       if (!res.ok) { console.error('Reddit fetch failed for r/' + sub + ':', res.status); continue; }
       const data = await res.json();
       (data.data?.children || []).forEach(c => {
