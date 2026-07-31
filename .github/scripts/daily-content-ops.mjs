@@ -23,7 +23,7 @@ const firebaseConfig = {
   measurementId: "G-JM9T9CLHMX"
 };
 
-const KEYS = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY1].filter(Boolean);
+const KEYS = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY1, process.env.GEMINI_API_KEY2].filter(Boolean);
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 if (!KEYS.length && !GROQ_API_KEY) {
   console.error('No Gemini key and no Groq key found in secrets (GEMINI_API_KEY / GEMINI_API_KEY1 / GROQ_API_KEY). Aborting.');
@@ -425,12 +425,34 @@ async function runContentResearch() {
   console.log('Content research saved:', items.length, 'scored topics.');
 }
 
+// Every step is wrapped so one step's failure (e.g. Gemini quota exhausted) never
+// blocks the others — each step either succeeds or logs and moves on. The whole
+// job only exits non-zero if something outside these steps throws (should never
+// happen in normal operation).
+async function runStep(name, fn) {
+  try {
+    await fn();
+  } catch (e) {
+    console.error(`Step "${name}" failed, continuing with the rest:`, e.message);
+  }
+}
+
 async function main() {
-  await replenishBacklog();
-  await refreshTrending();
-  await runContentResearch();
-  await fetchCarouselInspiration();
+  await runStep('replenishBacklog', replenishBacklog);
+  // Trending refresh and Carousel Inspiration both use Gemini's Google Search
+  // grounding — the only calls that can't fall back to the free Groq key. Running
+  // both every single day roughly doubled grounded-call volume once Carousel
+  // Inspiration was added, which is what pushed today's free quota over the edge
+  // during heavy manual testing. Alternating them by day keeps each one fresh
+  // every ~2 days while keeping total daily Gemini load where it was before.
+  const dayOfMonth = new Date().getDate();
+  if (dayOfMonth % 2 === 0) {
+    await runStep('refreshTrending', refreshTrending);
+  } else {
+    await runStep('fetchCarouselInspiration', fetchCarouselInspiration);
+  }
+  await runStep('runContentResearch', runContentResearch);
   console.log('Daily content ops complete.');
 }
 
-main().catch(e => { console.error('Fatal error:', e); process.exit(1); });
+main().catch(e => { console.error('Fatal error (should not normally happen — all steps are self-contained):', e); process.exit(1); });
