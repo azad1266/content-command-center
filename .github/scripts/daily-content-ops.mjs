@@ -24,11 +24,13 @@ const firebaseConfig = {
 };
 
 const KEYS = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY1].filter(Boolean);
-if (!KEYS.length) {
-  console.error('No Gemini key found in secrets (GEMINI_API_KEY / GEMINI_API_KEY1). Aborting.');
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+if (!KEYS.length && !GROQ_API_KEY) {
+  console.error('No Gemini key and no Groq key found in secrets (GEMINI_API_KEY / GEMINI_API_KEY1 / GROQ_API_KEY). Aborting.');
   process.exit(1);
 }
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || '';
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 const CATEGORIES = ["Business Collapse/Failure","Hidden Business Models","Founder Psychology & Decisions","Marketing Psychology Tricks","Company Rivalries & Wars","Pricing Psychology","Indian Business Stories","Global Tech Secrets","Scams & Frauds","Underdog/Comeback Stories"];
 
@@ -51,13 +53,42 @@ async function callGeminiWithKey(key, prompt, grounded) {
   return (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
 }
 
+// Groq (console.groq.com) has a genuinely free, no-card developer tier — used here
+// as a fallback when every Gemini key is rate-limited/quota-exhausted. Groq does not
+// support Google Search grounding, so it's only tried for non-grounded calls.
+async function callGroqWithKey(key, prompt) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error('Groq error: ' + t.slice(0, 300));
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
 async function callGemini(prompt, grounded = false) {
   let lastErr;
   for (const key of KEYS) {
     try { return await callGeminiWithKey(key, prompt, grounded); }
-    catch (e) { lastErr = e; console.error('Key failed, trying next:', e.message); }
+    catch (e) {
+      lastErr = e;
+      console.error('Key failed, trying next:', e.message);
+      // Quota/rate-limit errors sometimes clear within a few seconds — a short
+      // backoff before the next key/provider avoids compounding the failure.
+      if (/429/.test(e.message)) await sleep(4000);
+    }
   }
-  throw lastErr || new Error('All Gemini keys failed.');
+  if (!grounded && GROQ_API_KEY) {
+    try {
+      console.log('All Gemini keys failed — falling back to free Groq key.');
+      return await callGroqWithKey(GROQ_API_KEY, prompt);
+    } catch (e) { lastErr = e; console.error('Groq fallback also failed:', e.message); }
+  }
+  throw lastErr || new Error('All AI providers failed.');
 }
 
 function parseTrendingBlocks(text) {
@@ -260,10 +291,25 @@ function trimList(items, n, keyFn) {
   return items.slice(0, n).map(keyFn).join('\n') || '(none found)';
 }
 
+async function getPerformanceBlock() {
+  try {
+    const snap = await getDoc(doc(db, 'meta', 'performanceStats'));
+    if (!snap.exists()) return '';
+    const byCat = snap.data().byCategory || {};
+    const lines = Object.entries(byCat)
+      .filter(([, v]) => v.count >= 2)
+      .sort((a, b) => b[1].avgViews - a[1].avgViews)
+      .map(([cat, v]) => `- ${cat}: avg ${Math.round(v.avgViews)} views across ${v.count} posted videos`);
+    if (!lines.length) return '';
+    return `\n\n=== YOUR CHANNEL'S ACTUAL PERFORMANCE SO FAR (real data, weekly-refreshed) ===\n${lines.join('\n')}\nUse this to bias scoring toward categories that have genuinely worked for THIS channel, not just external signal.`;
+  } catch (e) { console.error('Could not load performanceStats:', e.message); return ''; }
+}
+
 async function synthesizeContentResearch(yt, reddit, ig) {
   const ytBlock = trimList(yt, 30, v => `- "${v.title}" (${v.channel}, ${v.publishedAt.slice(0, 10)}) ${v.url}`);
   const redditBlock = trimList(reddit.sort((a, b) => b.upvotes - a.upvotes), 30, p => `- [r/${p.subreddit}, ${p.upvotes} upvotes, ${p.comments} comments] "${p.title}" ${p.url}`);
   const igBlock = trimList(ig, 15, i => `- "${i.title}" ${i.url}`);
+  const perfBlock = await getPerformanceBlock();
 
   const prompt = `You are a viral-content strategist for a Hindi business-storytelling YouTube Shorts channel (faceless, AI avatar). The channel's 10 categories are: ${CATEGORIES.join(', ')}.
 
@@ -276,7 +322,7 @@ ${ytBlock}
 ${redditBlock}
 
 === INSTAGRAM-ADJACENT (web-sourced mentions of trending Instagram business content) ===
-${igBlock}
+${igBlock}${perfBlock}
 
 For each of your 8-10 picks, respond in EXACTLY this block format:
 
