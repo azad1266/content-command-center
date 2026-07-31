@@ -1179,7 +1179,7 @@ window.addTrendingToBacklog = async function(idx) {
   const it = lastTrendingItems[idx];
   if (!it) return;
   const newTopic = await addTopicToList(it.cat, it.title, 'trending');
-  alert('Backlog me add ho gaya: #' + newTopic.id);
+  openInStudio(newTopic.id);
 }
 
 function renderTrending(data) {
@@ -1203,7 +1203,7 @@ function renderTrending(data) {
           <div style="font-size:12px;color:var(--muted);margin-top:6px">${it.why || ''}</div>
           <a href="${it.source}" target="_blank" rel="noopener" class="trend-source">${ICONS.link}Source</a>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="addTrendingToBacklog(${idx})">+ Add to Backlog</button>
+        <button class="btn btn-primary btn-sm" onclick="addTrendingToBacklog(${idx})">${ICONS.wand}Select &amp; Start Content</button>
       </div>
     </div>`;
   }).join('');
@@ -1213,7 +1213,7 @@ window.addResearchToBacklog = async function(idx) {
   const it = lastResearchItems[idx];
   if (!it) return;
   const newTopic = await addTopicToList(it.cat, it.title, 'research');
-  alert('Backlog me add ho gaya: #' + newTopic.id);
+  openInStudio(newTopic.id);
 }
 
 function renderResearch(data) {
@@ -1250,7 +1250,7 @@ function renderResearch(data) {
           <div style="margin-top:6px">${platforms}</div>
           <a href="${it.source}" target="_blank" rel="noopener" class="trend-source">${ICONS.link}Source</a>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="addResearchToBacklog(${idx})">+ Add to Backlog</button>
+        <button class="btn btn-primary btn-sm" onclick="addResearchToBacklog(${idx})">${ICONS.wand}Select &amp; Start Content</button>
       </div>
     </div>`;
   }).join('');
